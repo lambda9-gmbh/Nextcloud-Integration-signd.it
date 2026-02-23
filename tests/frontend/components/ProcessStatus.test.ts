@@ -10,6 +10,10 @@ const stubs = {
 		template: '<button @click="$emit(\'click\')"><slot /></button>',
 		props: ['variant'],
 	},
+	NcNoteCard: {
+		template: '<div class="nc-note-card" :data-type="type"><slot /></div>',
+		props: ['type'],
+	},
 	SignerList: {
 		template: '<div class="signer-list-stub" />',
 		props: ['label', 'signers', 'variant'],
@@ -137,11 +141,12 @@ describe('ProcessStatus', () => {
 		expect(wrapper.emitted('download')).toHaveLength(1)
 	})
 
-	it('shows "Signed PDF saved" instead of download button when already downloaded', () => {
+	it('shows "Open signed PDF" link when finishedPdfFileId is present', () => {
 		const wrapper = mount(ProcessStatus, {
 			props: {
 				process: createProcess({
 					finishedPdfPath: '/Documents/contract_signed.pdf',
+					finishedPdfFileId: 99,
 					meta: {
 						created: '2025-01-01T12:00:00Z',
 						filename: 'contract.pdf',
@@ -154,9 +159,103 @@ describe('ProcessStatus', () => {
 			global: { stubs },
 		})
 
-		expect(wrapper.find('.signd-downloaded').text()).toBe('Signed PDF saved')
+		const link = wrapper.find('.signd-pdf-link')
+		expect(link.exists()).toBe(true)
+		expect(link.text()).toBe('Open signed PDF')
+		expect(link.attributes('href')).toContain('fileid=99')
+
 		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Download'))
 		expect(downloadBtn).toBeUndefined()
+	})
+
+	it('shows warning NcNoteCard and download button when finishedPdfDeleted is true', () => {
+		const wrapper = mount(ProcessStatus, {
+			props: {
+				process: createProcess({
+					finishedPdfPath: null,
+					finishedPdfDeleted: true,
+					meta: {
+						created: '2025-01-01T12:00:00Z',
+						filename: 'contract.pdf',
+						signersCompleted: [{ id: 's1' }],
+						signersRejected: [],
+						signersPending: [],
+					},
+				}),
+			},
+			global: { stubs },
+		})
+
+		const warning = wrapper.find('.nc-note-card[data-type="warning"]')
+		expect(warning.exists()).toBe(true)
+		expect(warning.text()).toContain('Previously saved PDF was deleted.')
+
+		// Download button should be visible since finishedPdfPath is null
+		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Download signed PDF'))
+		expect(downloadBtn).toBeTruthy()
+	})
+
+	// ── Process name fallback ──
+
+	it('falls back to filename when no name in meta', () => {
+		const wrapper = mount(ProcessStatus, {
+			props: {
+				process: createProcess({
+					meta: {
+						created: '2025-01-01T12:00:00Z',
+						filename: 'vertrag.pdf',
+						signersCompleted: [],
+						signersRejected: [],
+						signersPending: [{ id: 's1' }],
+					},
+				}),
+			},
+			global: { stubs },
+		})
+
+		expect(wrapper.find('.signd-process-name').text()).toBe('vertrag.pdf')
+	})
+
+	it('falls back to default text when no name and no filename', () => {
+		const wrapper = mount(ProcessStatus, {
+			props: {
+				process: createProcess({
+					meta: {
+						created: '2025-01-01T12:00:00Z',
+						filename: '',
+						signersCompleted: [],
+						signersRejected: [],
+						signersPending: [{ id: 's1' }],
+					},
+				}),
+			},
+			global: { stubs },
+		})
+
+		expect(wrapper.find('.signd-process-name').text()).toBe('Signing process')
+	})
+
+	// ── Status priority ──
+
+	it('cancelled takes priority over pending signers', () => {
+		const wrapper = mount(ProcessStatus, {
+			props: {
+				process: createProcess({
+					meta: {
+						created: '2025-01-01T12:00:00Z',
+						filename: 'contract.pdf',
+						signersCompleted: [{ id: 's1' }],
+						signersRejected: [],
+						signersPending: [{ id: 's2' }],
+						cancelled: '2025-01-02T12:00:00Z',
+					},
+				}),
+			},
+			global: { stubs },
+		})
+
+		expect(wrapper.find('.signd-badge').text()).toBe('Cancelled')
+		expect(wrapper.find('.signd-badge').classes()).toContain('signd-badge--error')
 	})
 
 	// ── Draft actions ──

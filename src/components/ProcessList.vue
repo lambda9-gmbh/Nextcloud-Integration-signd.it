@@ -4,7 +4,6 @@
             v-for="process in processes"
             :key="process.processId"
             :process="process"
-            @refresh="$emit('refresh', process.processId)"
             @download="$emit('download', process.processId)"
             @resume-wizard="$emit('resume-wizard', process.processId)"
             @cancel-wizard="$emit('cancel-wizard', process.processId)" />
@@ -31,7 +30,7 @@ export default defineComponent({
         },
     },
 
-    emits: ['refresh', 'download', 'resume-wizard', 'cancel-wizard'],
+    emits: ['download', 'resume-wizard', 'cancel-wizard'],
 })
 </script>
 

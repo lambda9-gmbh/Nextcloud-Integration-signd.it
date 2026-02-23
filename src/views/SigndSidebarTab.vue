@@ -26,7 +26,6 @@
                 <ProcessList
                     v-if="processes.length > 0"
                     :processes="processes"
-                    @refresh="refreshProcess"
                     @download="downloadPdf"
                     @resume-wizard="resumeWizard"
                     @cancel-wizard="cancelWizard" />
@@ -80,6 +79,7 @@ import ProcessList from '../components/ProcessList.vue'
 import StartProcessButton from '../components/StartProcessButton.vue'
 
 import { processApi, extractErrorMessage } from '../services/api'
+import { notifyFileCreated } from '../services/fileListNotify'
 import type { SigndProcess } from '../services/api'
 
 export default defineComponent({
@@ -156,24 +156,13 @@ export default defineComponent({
             }
         },
 
-        async refreshProcess(processId: string) {
-            try {
-                const updated = await processApi.refresh(processId)
-                const idx = this.processes.findIndex((p) => p.processId === processId)
-                if (idx !== -1) {
-                    this.processes[idx] = updated
-                }
-            } catch (e) {
-                this.error = extractErrorMessage(e, t('integration_signd', 'Failed to refresh process status.'))
-            }
-        },
-
         async downloadPdf(processId: string) {
             this.warning = ''
             try {
                 const process = this.processes.find(p => p.processId === processId)
                 const filename = process?.meta?.filename
                 const result = await processApi.download(processId, filename)
+                notifyFileCreated(result)
                 if (result.targetDirMissing) {
                     this.warning = t('integration_signd', 'Original folder no longer exists. Signed PDF was saved to your home folder.')
                 }

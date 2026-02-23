@@ -94,6 +94,13 @@ class OverviewController extends Controller {
             if ($user !== null && !empty($result['processes'])) {
                 $userFolder = $this->rootFolder->getUserFolder($user->getUID());
 
+                // Decode apiClientMetaData (signd returns it as JSON string)
+                foreach ($result['processes'] as $i => $proc) {
+                    if (isset($proc['apiClientMetaData']) && is_string($proc['apiClientMetaData'])) {
+                        $result['processes'][$i]['apiClientMetaData'] = json_decode($proc['apiClientMetaData'], true) ?? [];
+                    }
+                }
+
                 // Collect all ncFileId values and batch-check existence
                 $fileExistsMap = [];
                 foreach ($result['processes'] as $proc) {

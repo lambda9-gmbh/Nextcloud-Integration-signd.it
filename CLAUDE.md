@@ -7,6 +7,7 @@ Nextcloud-App (v1, NC 30–32) zur Integration mit signd.it (digitales PDF-Signi
 - **[docs/decisions.md](docs/decisions.md)** — Architektur-Entscheidungen (verbindlich, bei Widersprüchen maßgeblich)
 - **[docs/status.md](docs/status.md)** — Was ist fertig, was fehlt (Prio 1/2/3)
 - **[docs/edge-cases.md](docs/edge-cases.md)** — Fehlerszenarien & Bewertungen
+- **[docs/testplan.md](docs/testplan.md)** — Testplan aller drei Ebenen (PHPUnit, Vitest, Playwright)
 - **[docs/research-sign-api.md](docs/research-sign-api.md)** — signd API Analyse
 - **[docs/research-nextcloud-app-dev.md](docs/research-nextcloud-app-dev.md)** — NC App-Entwicklung Patterns
 - **signd OpenAPI Spec:** `../digisign/src/main/resources/static/api.yaml` (Quelle der Wahrheit)

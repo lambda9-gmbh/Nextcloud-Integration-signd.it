@@ -104,6 +104,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 import SignerList from '../SignerList.vue'
 import { overviewApi, processApi, extractErrorMessage } from '../../services/api'
+import { notifyFileCreated } from '../../services/fileListNotify'
 import type { FoundProcess } from '../../services/api'
 
 export default defineComponent({
@@ -232,6 +233,7 @@ export default defineComponent({
 
             try {
                 const result = await processApi.download(this.process.processId, this.process.filename)
+                notifyFileCreated(result)
                 if (result.targetDirMissing) {
                     this.successMessage = t('integration_signd', 'Original folder no longer exists. Signed PDF was saved to your home folder.')
                 } else {

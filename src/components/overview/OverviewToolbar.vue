@@ -2,11 +2,11 @@
     <div class="toolbar">
         <NcTextField
             class="toolbar__search"
-            :value="searchQuery"
+            :model-value="searchQuery"
             :label="t('integration_signd', 'Search...')"
             :show-trailing-button="searchQuery !== ''"
             trailing-button-icon="close"
-            @update:value="onSearchInput"
+            @update:model-value="onSearchInput"
             @trailing-button-click="clearSearch" />
 
         <div class="toolbar__filters">
@@ -33,9 +33,9 @@
                 :placeholder="t('integration_signd', 'To')" />
 
             <NcCheckboxRadioSwitch
-                :checked="onlyMine"
+                :model-value="onlyMine"
                 type="switch"
-                @update:checked="$emit('update:onlyMine', $event)">
+                @update:model-value="$emit('update:onlyMine', $event)">
                 {{ t('integration_signd', 'Only mine') }}
             </NcCheckboxRadioSwitch>
         </div>

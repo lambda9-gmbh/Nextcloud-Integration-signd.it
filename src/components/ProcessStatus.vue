@@ -41,20 +41,22 @@
         </div>
 
         <!-- Actions: Normal process -->
-        <div v-else class="signd-process-actions">
-            <NcButton variant="tertiary" @click="$emit('refresh')">
-                {{ t('integration_signd', 'Refresh') }}
-            </NcButton>
-            <NcButton
-                v-if="derivedStatus === 'FINISHED' && !process.finishedPdfPath"
-                variant="primary"
-                @click="$emit('download')">
-                {{ t('integration_signd', 'Download signed PDF') }}
-            </NcButton>
-            <span v-if="process.finishedPdfPath" class="signd-downloaded">
-                {{ t('integration_signd', 'Signed PDF saved') }}
-            </span>
-        </div>
+        <template v-else>
+            <NcNoteCard v-if="process.finishedPdfDeleted" type="warning">
+                {{ t('integration_signd', 'Previously saved PDF was deleted.') }}
+            </NcNoteCard>
+            <div class="signd-process-actions">
+                <NcButton
+                    v-if="derivedStatus === 'FINISHED' && !process.finishedPdfPath"
+                    variant="primary"
+                    @click="$emit('download')">
+                    {{ t('integration_signd', 'Download signed PDF') }}
+                </NcButton>
+                <a v-if="process.finishedPdfFileId" :href="signedPdfLink" class="signd-pdf-link">
+                    {{ t('integration_signd', 'Open signed PDF') }}
+                </a>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -62,8 +64,10 @@
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import SignerList from './SignerList.vue'
 import type { SigndProcess } from '../services/api'
@@ -73,6 +77,7 @@ export default defineComponent({
 
     components: {
         NcButton,
+        NcNoteCard,
         SignerList,
     },
 
@@ -83,7 +88,7 @@ export default defineComponent({
         },
     },
 
-    emits: ['refresh', 'download', 'resume-wizard', 'cancel-wizard'],
+    emits: ['download', 'resume-wizard', 'cancel-wizard'],
 
     computed: {
         processName(): string {
@@ -121,6 +126,10 @@ export default defineComponent({
             default:
                 return 'pending'
             }
+        },
+
+        signedPdfLink(): string {
+            return generateUrl(`/apps/files/?fileid=${this.process.finishedPdfFileId}`)
         },
 
         statusLabel(): string {
@@ -216,9 +225,15 @@ export default defineComponent({
         margin-top: 8px;
     }
 
-    .signd-downloaded {
+    .signd-pdf-link {
         font-size: 12px;
-        color: var(--color-success);
+        color: var(--color-primary-element);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
+
 }
 </style>

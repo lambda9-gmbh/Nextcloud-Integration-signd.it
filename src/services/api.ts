@@ -121,6 +121,8 @@ export interface SigndProcess {
     userId: string
     targetDir: string | null
     finishedPdfPath: string | null
+    finishedPdfFileId?: number
+    finishedPdfDeleted?: boolean
     isDraft?: boolean
     meta?: ProcessMeta
 }
@@ -247,7 +249,7 @@ export const processApi = {
         return data
     },
 
-    async download(processId: string, filename?: string): Promise<{ path: string; name?: string; targetDirMissing?: boolean }> {
+    async download(processId: string, filename?: string): Promise<{ path: string; name?: string; targetDirMissing?: boolean; fileId?: number; size?: number; mtime?: number; owner?: string }> {
         const params = filename ? `?filename=${encodeURIComponent(filename)}` : ''
         const { data } = await axios.get(`${baseUrl}/api/processes/${processId}/download${params}`)
         return data

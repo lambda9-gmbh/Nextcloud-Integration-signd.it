@@ -46,6 +46,18 @@ class ProcessController extends Controller {
             foreach ($processes as $process) {
                 $baseData = $this->processToArray($process);
 
+                // Check if finished PDF still exists in NC storage
+                if ($process->getFinishedPdfPath()) {
+                    try {
+                        $file = $this->rootFolder->get($process->getFinishedPdfPath());
+                        $baseData['finishedPdfFileId'] = $file->getId();
+                    } catch (NotFoundException) {
+                        // Don't clear DB — keep path so we detect deletion on every load
+                        $baseData['finishedPdfPath'] = null;
+                        $baseData['finishedPdfDeleted'] = true;
+                    }
+                }
+
                 // Try to fetch meta from sign API
                 try {
                     $meta = $this->signApiService->getMeta($process->getProcessId());
@@ -67,6 +79,10 @@ class ProcessController extends Controller {
                     // All completed/active processes
                     if (!empty($meta['processes'])) {
                         foreach ($meta['processes'] as $processMeta) {
+                            // Decode apiClientMetaData (signd returns it as JSON string)
+                            if (isset($processMeta['apiClientMetaData']) && is_string($processMeta['apiClientMetaData'])) {
+                                $processMeta['apiClientMetaData'] = json_decode($processMeta['apiClientMetaData'], true) ?? [];
+                            }
                             $data = $baseData;
                             $data['meta'] = $processMeta;
                             $result[] = $data;
@@ -134,7 +150,7 @@ class ProcessController extends Controller {
                 'pdfFilename' => $file->getName(),
                 'pdfData' => $base64Content,
                 'name' => $file->getName(),
-                'apiClientMetaData' => [
+                'apiClientMetaData' => json_encode([
                     'applicationName' => 'nextcloud-signd',
                     'applicationMetaData' => [
                         'ncFileId' => (string) $fileId,
@@ -143,7 +159,7 @@ class ProcessController extends Controller {
                         'ncUserId' => $userId,
                         'ncInstanceId' => $instanceId,
                     ],
-                ],
+                ]),
             ];
 
             // Call sign API
@@ -225,10 +241,16 @@ class ProcessController extends Controller {
         }
 
         if ($process->getFinishedPdfPath()) {
-            return new JSONResponse([
-                'path' => $process->getFinishedPdfPath(),
-                'message' => 'Already downloaded',
-            ]);
+            // Check if the previously downloaded file still exists
+            try {
+                $this->rootFolder->get($process->getFinishedPdfPath());
+                return new JSONResponse([
+                    'path' => $process->getFinishedPdfPath(),
+                    'message' => 'Already downloaded',
+                ]);
+            } catch (NotFoundException) {
+                // File was deleted, allow re-download
+            }
         }
 
         try {
@@ -290,6 +312,10 @@ class ProcessController extends Controller {
             $response = [
                 'path' => $newFile->getPath(),
                 'name' => $signedName,
+                'fileId' => $newFile->getId(),
+                'size' => $newFile->getSize(),
+                'mtime' => $newFile->getMTime(),
+                'owner' => $userId,
             ];
             if ($targetDirMissing) {
                 $response['targetDirMissing'] = true;

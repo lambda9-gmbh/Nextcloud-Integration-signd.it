@@ -22,3 +22,6 @@ test-results/
 
 # Claude Code
 .claude/
+
+# Local dev only
+deploy-staging.sh
