@@ -8,14 +8,18 @@
         <!-- Pricing -->
         <div v-if="prices" class="signd-pricing">
             <h4>{{ t('integration_signd', 'Choose a plan') }}</h4>
+            <p class="signd-pricing-link">
+                <a :href="pricingUrl" target="_blank" rel="noopener">{{ t('integration_signd', 'Compare plans and pricing on signd.it') }}</a>
+            </p>
             <div class="signd-plan-options">
                 <NcCheckboxRadioSwitch
                     v-for="plan in planOptions"
                     :key="plan.value"
-                    v-model:checked="form.productPlan"
+                    :model-value="form.productPlan"
                     :value="plan.value"
                     name="productPlan"
-                    type="radio">
+                    type="radio"
+                    @update:model-value="form.productPlan = $event">
                     <strong>{{ plan.label }}</strong> —
                     {{ t('integration_signd', '{price} €/month per user, {included} processes included', {
                         price: plan.price.perMonthAndUser,
@@ -53,7 +57,13 @@
             </div>
         </div>
         <div class="signd-form-field">
-            <NcTextField v-model="form.country" :label="t('integration_signd', 'Country code (e.g. DE)')" :disabled="isLoading" />
+            <NcSelect
+                v-model="selectedCountry"
+                :options="countryOptions"
+                :placeholder="t('integration_signd', 'Country')"
+                :disabled="isLoading"
+                label="label"
+                input-id="signd-country-select" />
         </div>
 
         <!-- Personal -->
@@ -78,11 +88,11 @@
 
         <!-- Legal -->
         <div class="signd-legal">
-            <NcCheckboxRadioSwitch v-model:checked="form.agbAccepted" :disabled="isLoading">
+            <NcCheckboxRadioSwitch v-model="form.agbAccepted" :disabled="isLoading">
                 {{ t('integration_signd', 'I accept the') }}
                 <a :href="termsUrl" target="_blank" rel="noopener">{{ t('integration_signd', 'Terms and Conditions') }}</a>
             </NcCheckboxRadioSwitch>
-            <NcCheckboxRadioSwitch v-model:checked="form.dsbAccepted" :disabled="isLoading">
+            <NcCheckboxRadioSwitch v-model="form.dsbAccepted" :disabled="isLoading">
                 {{ t('integration_signd', 'I accept the') }}
                 <a :href="privacyUrl" target="_blank" rel="noopener">{{ t('integration_signd', 'Privacy Policy') }}</a>
             </NcCheckboxRadioSwitch>
@@ -106,7 +116,25 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, getLanguage } from '@nextcloud/l10n'
+import countries from 'i18n-iso-countries'
+import countriesDE from 'i18n-iso-countries/langs/de.json'
+import countriesEN from 'i18n-iso-countries/langs/en.json'
+import countriesES from 'i18n-iso-countries/langs/es.json'
+import countriesFR from 'i18n-iso-countries/langs/fr.json'
+import countriesIT from 'i18n-iso-countries/langs/it.json'
+import countriesPT from 'i18n-iso-countries/langs/pt.json'
+import countriesDA from 'i18n-iso-countries/langs/da.json'
+import countriesPL from 'i18n-iso-countries/langs/pl.json'
+
+countries.registerLocale(countriesDE)
+countries.registerLocale(countriesEN)
+countries.registerLocale(countriesES)
+countries.registerLocale(countriesFR)
+countries.registerLocale(countriesIT)
+countries.registerLocale(countriesPT)
+countries.registerLocale(countriesDA)
+countries.registerLocale(countriesPL)
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
@@ -114,6 +142,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 
 import { settingsApi } from '../services/api'
 import type { PriceInfo, PricesResponse } from '../services/api'
@@ -128,6 +157,7 @@ export default defineComponent({
         NcCheckboxRadioSwitch,
         NcNoteCard,
         NcLoadingIcon,
+        NcSelect,
     },
 
     emits: ['registered'],
@@ -141,7 +171,7 @@ export default defineComponent({
                 houseNumber: '',
                 zipCode: '',
                 city: '',
-                country: 'DE',
+                country: '',
                 clearName: '',
                 email: '',
                 password: '',
@@ -171,6 +201,32 @@ export default defineComponent({
             return `${this.serverUrl}/privacy-policy`
         },
 
+        countryLang(): string {
+            const supported = ['de', 'en', 'es', 'fr', 'it', 'pt', 'da', 'pl']
+            const lang = getLanguage().split('-')[0].toLowerCase()
+            return supported.includes(lang) ? lang : 'en'
+        },
+
+        pricingUrl(): string {
+            return `${this.serverUrl}/pages/${this.countryLang}/preise/`
+        },
+
+        countryOptions(): Array<{ code: string; label: string }> {
+            const names = countries.getNames(this.countryLang)
+            return Object.entries(names)
+                .map(([code, label]) => ({ code, label: label as string }))
+                .sort((a, b) => a.label.localeCompare(b.label, this.countryLang))
+        },
+
+        selectedCountry: {
+            get(): { code: string; label: string } | null {
+                return this.countryOptions.find(c => c.code === this.form.country) ?? null
+            },
+            set(option: { code: string; label: string } | null) {
+                this.form.country = option?.code ?? ''
+            },
+        },
+
         planOptions(): Array<{ value: string; label: string; price: PriceInfo }> {
             if (!this.prices) return []
             return [
@@ -187,6 +243,7 @@ export default defineComponent({
                 && this.form.houseNumber
                 && this.form.zipCode
                 && this.form.city
+                && this.form.country
                 && this.form.clearName
                 && this.form.email
                 && this.form.password
@@ -242,6 +299,14 @@ export default defineComponent({
     h4 {
         margin-top: 20px;
         margin-bottom: 8px;
+    }
+
+    .signd-pricing-link {
+        margin-bottom: 8px;
+
+        a {
+            color: var(--color-primary-element);
+        }
     }
 
     .signd-form-field {

@@ -2,7 +2,9 @@
     <div class="signd-admin-settings">
         <NcSettingsSection :name="t('integration_signd', 'signd.it integration')">
             <p class="signd-description">
-                {{ t('integration_signd', 'Connect your Nextcloud with signd.it to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.') }}
+                {{ t('integration_signd', 'Connect your Nextcloud with') }}
+                <a href="https://signd.it" target="_blank" rel="noopener">signd.it</a>
+                {{ t('integration_signd', 'to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.') }}
             </p>
             <p class="signd-description">
                 {{ t('integration_signd', 'The API key is linked to a single signd.it account. All signing processes run through this account, are billed to it, and are visible to all users regardless of who initiated them.') }}
@@ -16,18 +18,36 @@
                 <!-- Status display -->
                 <div v-if="apiKeySet && !apiKeyValid" class="signd-status">
                     <NcNoteCard type="error">
-                        {{ t('integration_signd', 'The stored API key is no longer valid. Please enter a new key, log in, or register a new account.') }}
+                        <div class="signd-notecard-content">
+                            <div>
+                                {{ t('integration_signd', 'The stored API key is no longer valid. Please enter a new key, log in, or register a new account.') }}
+                            </div>
+                            <NcButton variant="tertiary"
+                                :disabled="isDisconnecting"
+                                @click="onDisconnect">
+                                {{ t('integration_signd', 'Disconnect') }}
+                            </NcButton>
+                        </div>
                     </NcNoteCard>
                 </div>
                 <div v-else-if="apiKeySet" class="signd-status">
                     <NcNoteCard type="success">
-                        <p>{{ t('integration_signd', 'API key is configured.') }}</p>
-                        <p v-if="userInfo">
-                            {{ t('integration_signd', 'Connected as: {name} ({email})', {
-                                name: userInfo.clearName || '—',
-                                email: userInfo.email,
-                            }) }}
-                        </p>
+                        <div class="signd-notecard-content">
+                            <div>
+                                <p>{{ t('integration_signd', 'API key is configured.') }}</p>
+                                <p v-if="userInfo">
+                                    {{ t('integration_signd', 'Connected as: {name} ({email})', {
+                                        name: userInfo.clearName || '—',
+                                        email: userInfo.email,
+                                    }) }}
+                                </p>
+                            </div>
+                            <NcButton variant="tertiary"
+                                :disabled="isDisconnecting"
+                                @click="onDisconnect">
+                                {{ t('integration_signd', 'Disconnect') }}
+                            </NcButton>
+                        </div>
                     </NcNoteCard>
                 </div>
                 <div v-else class="signd-status">
@@ -36,35 +56,29 @@
                     </NcNoteCard>
                 </div>
 
-                <!-- Disconnect button -->
-                <NcButton v-if="apiKeySet"
-                    variant="tertiary"
-                    :disabled="isDisconnecting"
-                    @click="onDisconnect">
-                    {{ t('integration_signd', 'Disconnect') }}
-                </NcButton>
+                <!-- Tab navigation (only when not connected) -->
+                <template v-if="!apiKeySet || !apiKeyValid">
+                    <div class="signd-tabs">
+                        <NcButton
+                            v-for="tab in tabs"
+                            :key="tab.id"
+                            :variant="activeTab === tab.id ? 'primary' : 'secondary'"
+                            @click="activeTab = tab.id">
+                            {{ tab.label }}
+                        </NcButton>
+                    </div>
 
-                <!-- Tab navigation -->
-                <div class="signd-tabs">
-                    <NcButton
-                        v-for="tab in tabs"
-                        :key="tab.id"
-                        :variant="activeTab === tab.id ? 'primary' : 'secondary'"
-                        @click="activeTab = tab.id">
-                        {{ tab.label }}
-                    </NcButton>
-                </div>
-
-                <!-- Tab content -->
-                <ApiKeyForm
-                    v-if="activeTab === 'apikey'"
-                    @saved="onApiKeySaved" />
-                <LoginForm
-                    v-if="activeTab === 'login'"
-                    @logged-in="onLoggedIn" />
-                <RegisterForm
-                    v-if="activeTab === 'register'"
-                    @registered="onRegistered" />
+                    <!-- Tab content -->
+                    <ApiKeyForm
+                        v-if="activeTab === 'apikey'"
+                        @saved="onApiKeySaved" />
+                    <LoginForm
+                        v-if="activeTab === 'login'"
+                        @logged-in="onLoggedIn" />
+                    <RegisterForm
+                        v-if="activeTab === 'register'"
+                        @registered="onRegistered" />
+                </template>
             </template>
         </NcSettingsSection>
     </div>
@@ -140,10 +154,15 @@ export default defineComponent({
             }
         },
 
-        onRegistered() {
+        async onRegistered() {
             this.apiKeySet = true
             this.apiKeyValid = true
-            this.userInfo = null
+            try {
+                const config = await settingsApi.getConfig()
+                this.userInfo = config.userInfo
+            } catch {
+                this.userInfo = null
+            }
         },
 
         async onDisconnect() {
@@ -168,6 +187,10 @@ export default defineComponent({
     .signd-description {
         margin-bottom: 8px;
         color: var(--color-text-maxcontrast);
+
+        a {
+            color: var(--color-primary-element);
+        }
     }
 
     .signd-loading {
@@ -178,6 +201,18 @@ export default defineComponent({
 
     .signd-status {
         margin-bottom: 16px;
+
+        :deep(.notecard > div:not(.notecard__icon)) {
+            flex-grow: 1;
+        }
+    }
+
+    .signd-notecard-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
     }
 
     .signd-tabs {
