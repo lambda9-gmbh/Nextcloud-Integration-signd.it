@@ -8,6 +8,7 @@
         "Cancelled": "Annulleret",
         "Cannot reach the signd.it server. Please try again later.": "Kan ikke nå signd.it-serveren. Prøv venligst igen senere.",
         "Choose a plan": "Vælg en plan",
+        "Compare plans and pricing on signd.it": "Sammenlign planer og priser på signd.it",
         "City": "By",
         "Completed": "Fuldført",
         "Connect your Nextcloud with signd.it to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.": "Forbind din Nextcloud med signd.it for at signere PDF-dokumenter digitalt. Når en API-nøgle er konfigureret, kan alle brugere af denne Nextcloud-instans starte signeringsprocesser.",

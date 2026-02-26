@@ -1,11 +1,8 @@
 <template>
     <div class="signd-admin-settings">
         <NcSettingsSection :name="t('integration_signd', 'signd.it integration')">
-            <p class="signd-description">
-                {{ t('integration_signd', 'Connect your Nextcloud with') }}
-                <a href="https://signd.it" target="_blank" rel="noopener">signd.it</a>
-                {{ t('integration_signd', 'to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.') }}
-            </p>
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <p class="signd-description" v-html="descriptionText" />
             <p class="signd-description">
                 {{ t('integration_signd', 'The API key is linked to a single signd.it account. All signing processes run through this account, are billed to it, and are visible to all users regardless of who initiated them.') }}
             </p>
@@ -126,6 +123,11 @@ export default defineComponent({
     },
 
     computed: {
+        descriptionText(): string {
+            const text = t('integration_signd', 'Connect your Nextcloud with signd.it to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.')
+            return text.replace('signd.it', '<a href="https://signd.it" target="_blank" rel="noopener">signd.it</a>')
+        },
+
         tabs() {
             return [
                 { id: 'apikey', label: t('integration_signd', 'API Key') },

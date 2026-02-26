@@ -6,7 +6,7 @@
         </p>
 
         <!-- Pricing -->
-        <div v-if="prices" class="signd-pricing">
+        <div class="signd-pricing">
             <h4>{{ t('integration_signd', 'Choose a plan') }}</h4>
             <p class="signd-pricing-link">
                 <a :href="pricingUrl" target="_blank" rel="noopener">{{ t('integration_signd', 'Compare plans and pricing on signd.it') }}</a>
@@ -20,17 +20,15 @@
                     name="productPlan"
                     type="radio"
                     @update:model-value="form.productPlan = $event">
-                    <strong>{{ plan.label }}</strong> —
-                    {{ t('integration_signd', '{price} €/month per user, {included} processes included', {
-                        price: plan.price.perMonthAndUser,
-                        included: plan.price.includedProcessesPerMonth,
-                    }) }}
+                    <strong>{{ plan.label }}</strong>
+                    <template v-if="plan.price">
+                        — {{ t('integration_signd', '{price} €/month per user, {included} processes included', {
+                            price: plan.price.perMonthAndUser,
+                            included: plan.price.includedProcessesPerMonth,
+                        }) }}
+                    </template>
                 </NcCheckboxRadioSwitch>
             </div>
-        </div>
-        <div v-else-if="pricesLoading" class="signd-prices-loading">
-            <NcLoadingIcon :size="20" />
-            {{ t('integration_signd', 'Loading pricing information...') }}
         </div>
 
         <!-- Organisation -->
@@ -227,11 +225,10 @@ export default defineComponent({
             },
         },
 
-        planOptions(): Array<{ value: string; label: string; price: PriceInfo }> {
-            if (!this.prices) return []
+        planOptions(): Array<{ value: string; label: string; price: PriceInfo | null }> {
             return [
-                { value: 'premium', label: 'Premium', price: this.prices.premium },
-                { value: 'enterprise', label: 'Enterprise', price: this.prices.enterprise },
+                { value: 'premium', label: 'Premium', price: this.prices?.premium ?? null },
+                { value: 'enterprise', label: 'Enterprise', price: this.prices?.enterprise ?? null },
             ]
         },
 

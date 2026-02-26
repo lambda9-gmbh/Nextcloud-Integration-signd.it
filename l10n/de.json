@@ -8,6 +8,7 @@
         "Cancelled": "Abgebrochen",
         "Cannot reach the signd.it server. Please try again later.": "Der signd.it-Server ist nicht erreichbar. Bitte versuchen Sie es später erneut.",
         "Choose a plan": "Tarif wählen",
+        "Compare plans and pricing on signd.it": "Tarife und Preise auf signd.it vergleichen",
         "City": "Stadt",
         "Completed": "Abgeschlossen",
         "Connect your Nextcloud with signd.it to digitally sign PDF documents. Once an API key is configured, all users of this Nextcloud instance can start signing processes.": "Verbinden Sie Ihre Nextcloud mit signd.it, um PDF-Dokumente digital zu signieren. Sobald ein API-Schlüssel hinterlegt ist, können alle Benutzer dieser Nextcloud-Instanz Signaturprozesse starten.",
