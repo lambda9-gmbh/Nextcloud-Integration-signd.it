@@ -93,6 +93,7 @@
         "Unknown": "Desconhecido",
         "VAT ID (optional)": "NIF (opcional)",
         "ZIP code": "Código postal",
+        "signd.it includes default message texts for email notifications (e.g. \"Hello\" as salutation and \"Kind regards\" as closing). You should adapt these texts to match your corporate language. You can view and edit them in signd.it under the \"notification texts\" menu item.": "O signd.it inclui textos predefinidos para notificações por e-mail (p. ex., \"Olá\" como saudação e \"Cordialmente\" como despedida). Deve adaptar estes textos ao estilo de comunicação da sua organização. Pode visualizá-los e editá-los no signd.it no item de menu \"Textos de notificação\".",
         "signd.it": "signd.it",
         "signd.it integration": "Integração signd.it",
         "signd.it is not configured. An administrator needs to set up the API key in the admin settings.": "signd.it não está configurado. Um administrador precisa de configurar a chave API nas definições de administração.",

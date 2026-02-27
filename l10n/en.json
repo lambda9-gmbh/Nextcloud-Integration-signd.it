@@ -93,6 +93,7 @@
         "Unknown": "Unknown",
         "VAT ID (optional)": "VAT ID (optional)",
         "ZIP code": "ZIP code",
+        "signd.it includes default message texts for email notifications (e.g. \"Hello\" as salutation and \"Kind regards\" as closing). You should adapt these texts to match your corporate language. You can view and edit them in signd.it under the \"notification texts\" menu item.": "signd.it includes default message texts for email notifications (e.g. \"Hello\" as salutation and \"Kind regards\" as closing). You should adapt these texts to match your corporate language. You can view and edit them in signd.it under the \"notification texts\" menu item.",
         "signd.it": "signd.it",
         "signd.it integration": "signd.it integration",
         "signd.it is not configured. An administrator needs to set up the API key in the admin settings.": "signd.it is not configured. An administrator needs to set up the API key in the admin settings.",

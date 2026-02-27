@@ -4,6 +4,9 @@
         <p class="signd-description">
             {{ t('integration_signd', 'Create a new signd.it account. The API key will be configured automatically.') }}
         </p>
+        <p class="signd-description">
+            {{ t('integration_signd', 'signd.it includes default message texts for email notifications (e.g. "Hello" as salutation and "Kind regards" as closing). You should adapt these texts to match your corporate language. You can view and edit them in signd.it under the "notification texts" menu item.') }}
+        </p>
 
         <!-- Pricing -->
         <div class="signd-pricing">
