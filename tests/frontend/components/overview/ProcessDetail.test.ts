@@ -41,7 +41,7 @@ const stubs = {
 
 function createProcess(overrides: Partial<FoundProcess> = {}): FoundProcess {
 	return {
-		processId: 'proc-1',
+		documentId: 'proc-1',
 		name: 'Test Process',
 		created: '2025-01-15T10:00:00Z',
 		signersCompleted: [],
@@ -70,7 +70,7 @@ describe('ProcessDetail', () => {
 			signersRejected: [],
 		}))
 
-		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Download signed PDF'))
+		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Save finished PDF'))
 		expect(downloadBtn).toBeTruthy()
 	})
 
@@ -81,7 +81,7 @@ describe('ProcessDetail', () => {
 			signersPending: [],
 		}))
 
-		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Download signed PDF'))
+		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Save finished PDF'))
 		expect(downloadBtn).toBeUndefined()
 	})
 
@@ -117,7 +117,7 @@ describe('ProcessDetail', () => {
 			signersRejected: [],
 		}))
 
-		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Download'))!
+		const downloadBtn = wrapper.findAll('button').find(b => b.text().includes('Save finished PDF'))!
 		await downloadBtn.trigger('click')
 		await flushPromises()
 
@@ -138,18 +138,6 @@ describe('ProcessDetail', () => {
 		expect(wrapper.emitted('cancelled')).toHaveLength(1)
 	})
 
-	it('emits refresh event after refresh', async () => {
-		mockedProcessApi.refresh.mockResolvedValue({ processId: 'proc-1' } as any)
-
-		const wrapper = mountDetail()
-
-		const refreshBtn = wrapper.findAll('button').find(b => b.text().includes('Refresh'))!
-		await refreshBtn.trigger('click')
-		await flushPromises()
-
-		expect(wrapper.emitted('refresh')).toHaveLength(1)
-	})
-
 	it('shows file link using fileId', () => {
 		const wrapper = mountDetail(createProcess({
 			apiClientMetaData: {
@@ -163,6 +151,6 @@ describe('ProcessDetail', () => {
 
 		const link = wrapper.find('.signd-file-link')
 		expect(link.exists()).toBe(true)
-		expect(link.attributes('href')).toContain('fileid')
+		expect(link.attributes('href')).toContain('files/')
 	})
 })

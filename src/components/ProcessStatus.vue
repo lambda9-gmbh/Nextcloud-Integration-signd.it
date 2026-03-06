@@ -50,10 +50,10 @@
                     v-if="derivedStatus === 'FINISHED' && !process.finishedPdfPath"
                     variant="primary"
                     @click="$emit('download')">
-                    {{ t('integration_signd', 'Download signed PDF') }}
+                    {{ t('integration_signd', 'Save finished PDF') }}
                 </NcButton>
                 <a v-if="process.finishedPdfFileId" :href="signedPdfLink" class="signd-pdf-link">
-                    {{ t('integration_signd', 'Open signed PDF') }}
+                    {{ t('integration_signd', 'Open finished PDF') }}
                 </a>
             </div>
         </template>
@@ -129,7 +129,7 @@ export default defineComponent({
         },
 
         signedPdfLink(): string {
-            return generateUrl(`/apps/files/?fileid=${this.process.finishedPdfFileId}`)
+            return generateUrl('/apps/files/files/{fileId}?openfile=true', { fileId: this.process.finishedPdfFileId })
         },
 
         statusLabel(): string {

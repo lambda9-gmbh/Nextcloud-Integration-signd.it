@@ -1,6 +1,6 @@
 # Nextcloud App Development - Research
 
-> See also: [decisions.md](decisions.md) | [research-sign-api.md](research-sign-api.md) | [status.md](status.md)
+> See also: [research-sign-api.md](research-sign-api.md)
 
 ## 1. App Structure & Scaffolding
 

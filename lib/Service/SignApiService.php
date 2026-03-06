@@ -144,6 +144,15 @@ class SignApiService {
         $this->post('/api/resume-process', ['id' => $id]);
     }
 
+    public function getSignatureImage(string $signatureKey, int $height = 60): string {
+        $client = $this->clientService->newClient();
+        $url = $this->getApiUrl() . '/signature-animated/' . $signatureKey . '?h=' . $height;
+
+        $response = $client->get($url);
+
+        return $response->getBody();
+    }
+
     public function findByOriginal(string $pdfBinary): array {
         $client = $this->clientService->newClient();
         $url = $this->getApiUrl() . '/api/find-by-original';

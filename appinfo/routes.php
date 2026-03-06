@@ -27,5 +27,6 @@ return [
         ['name' => 'process#resumeWizard', 'url' => '/api/processes/{processId}/resume-wizard', 'verb' => 'POST'],
         ['name' => 'process#cancelWizard', 'url' => '/api/processes/{processId}/cancel-wizard', 'verb' => 'POST'],
         ['name' => 'process#download', 'url' => '/api/processes/{processId}/download', 'verb' => 'GET'],
+        ['name' => 'process#signatureImage', 'url' => '/api/signature/{signatureKey}', 'verb' => 'GET'],
     ],
 ];

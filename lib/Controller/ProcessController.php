@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\IntegrationSignd\Controller;
 
+use GuzzleHttp\Exception\ClientException;
 use OCA\IntegrationSignd\AppInfo\Application;
 use OCA\IntegrationSignd\Db\Process;
 use OCA\IntegrationSignd\Db\ProcessMapper;
@@ -11,6 +12,7 @@ use OCA\IntegrationSignd\Service\SignApiService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -322,12 +324,24 @@ class ProcessController extends Controller {
             }
 
             return new JSONResponse($response);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to download signed PDF', [
+        } catch (ClientException $e) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 423) {
+                return new JSONResponse(
+                    ['error' => 'The finished PDF is not ready yet. Please try again in a moment.', 'errorCode' => 'PDF_NOT_READY'],
+                    Http::STATUS_LOCKED
+                );
+            }
+            $this->logger->error('Failed to download finished PDF', [
                 'processId' => $processId,
                 'exception' => $e,
             ]);
-            return SignApiService::apiErrorResponse($e, 'Failed to download signed PDF');
+            return SignApiService::apiErrorResponse($e, 'Failed to download finished PDF');
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to download finished PDF', [
+                'processId' => $processId,
+                'exception' => $e,
+            ]);
+            return SignApiService::apiErrorResponse($e, 'Failed to download finished PDF');
         }
     }
 
@@ -377,6 +391,27 @@ class ProcessController extends Controller {
                 'exception' => $e,
             ]);
             return SignApiService::apiErrorResponse($e, 'Failed to cancel wizard');
+        }
+    }
+
+    /**
+     * Proxy for signature image from signd
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function signatureImage(string $signatureKey): DataDownloadResponse|JSONResponse {
+        try {
+            $imageData = $this->signApiService->getSignatureImage($signatureKey);
+            $response = new DataDownloadResponse($imageData, 'signature.gif', 'image/gif');
+            $response->addHeader('Cache-Control', 'public, max-age=86400, immutable');
+            return $response;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to fetch signature image', [
+                'signatureKey' => $signatureKey,
+                'exception' => $e,
+            ]);
+            return new JSONResponse(['error' => 'Failed to load signature image'], Http::STATUS_BAD_GATEWAY);
         }
     }
 

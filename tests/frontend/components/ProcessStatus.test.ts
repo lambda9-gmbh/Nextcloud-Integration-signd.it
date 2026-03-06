@@ -134,14 +134,14 @@ describe('ProcessStatus', () => {
 			global: { stubs },
 		})
 
-		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Download signed PDF'))
+		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Save finished PDF'))
 		expect(downloadBtn).toBeTruthy()
 
 		await downloadBtn!.trigger('click')
 		expect(wrapper.emitted('download')).toHaveLength(1)
 	})
 
-	it('shows "Open signed PDF" link when finishedPdfFileId is present', () => {
+	it('shows "Open finished PDF" link when finishedPdfFileId is present', () => {
 		const wrapper = mount(ProcessStatus, {
 			props: {
 				process: createProcess({
@@ -161,8 +161,8 @@ describe('ProcessStatus', () => {
 
 		const link = wrapper.find('.signd-pdf-link')
 		expect(link.exists()).toBe(true)
-		expect(link.text()).toBe('Open signed PDF')
-		expect(link.attributes('href')).toContain('fileid=99')
+		expect(link.text()).toBe('Open finished PDF')
+		expect(link.attributes('href')).toContain('files/')
 
 		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Download'))
 		expect(downloadBtn).toBeUndefined()
@@ -191,7 +191,7 @@ describe('ProcessStatus', () => {
 		expect(warning.text()).toContain('Previously saved PDF was deleted.')
 
 		// Download button should be visible since finishedPdfPath is null
-		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Download signed PDF'))
+		const downloadBtn = wrapper.findAll('button').find(btn => btn.text().includes('Save finished PDF'))
 		expect(downloadBtn).toBeTruthy()
 	})
 

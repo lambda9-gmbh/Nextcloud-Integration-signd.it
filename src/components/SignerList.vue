@@ -12,6 +12,14 @@
             <span v-if="signer.rejected" class="signd-signer-date">
                 ({{ formatDate(signer.rejected) }})
             </span>
+            <img
+                v-if="signer.signatureKey"
+                :src="signatureUrl(signer.signatureKey)"
+                :alt="t('integration_signd', 'Signature of {name}', { name: signer.clearName || signer.email || '' })"
+                class="signd-signature-image">
+            <span v-if="signer.rejectedReason" class="signd-signer-reason">
+                {{ signer.rejectedReason }}
+            </span>
         </div>
     </div>
 </template>
@@ -20,6 +28,7 @@
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 
 interface Signer {
     id: string
@@ -27,6 +36,8 @@ interface Signer {
     email?: string
     signed?: string
     rejected?: string
+    signatureKey?: string
+    rejectedReason?: string
 }
 
 export default defineComponent({
@@ -58,6 +69,10 @@ export default defineComponent({
     methods: {
         t,
 
+        signatureUrl(signatureKey: string): string {
+            return generateUrl('/apps/integration_signd/api/signature/{signatureKey}', { signatureKey })
+        },
+
         formatDate(dateStr: string): string {
             if (!dateStr) return '—'
             try {
@@ -85,7 +100,7 @@ export default defineComponent({
     padding-left: 12px;
 
     &--rejected {
-        color: var(--color-error);
+        color: var(--color-error-text);
     }
 
     &--pending {
@@ -96,5 +111,19 @@ export default defineComponent({
 .signd-signer-date {
     color: var(--color-text-maxcontrast);
     font-size: 12px;
+}
+
+.signd-signature-image {
+    display: block;
+    max-height: 60px;
+    max-width: 100%;
+    margin-top: 4px;
+}
+
+.signd-signer-reason {
+    display: block;
+    font-size: 12px;
+    font-style: italic;
+    margin-top: 2px;
 }
 </style>

@@ -56,18 +56,11 @@
 
         <!-- Actions -->
         <div class="signd-process-detail__actions">
-            <NcButton variant="secondary" :disabled="isRefreshing" @click="onRefresh">
-                <template #icon>
-                    <NcLoadingIcon v-if="isRefreshing" :size="20" />
-                </template>
-                {{ t('integration_signd', 'Refresh') }}
-            </NcButton>
-
             <NcButton
                 v-if="canDownload"
                 variant="primary"
                 @click="onDownload">
-                {{ t('integration_signd', 'Download signed PDF') }}
+                {{ t('integration_signd', 'Save finished PDF') }}
             </NcButton>
 
             <NcButton
@@ -124,11 +117,10 @@ export default defineComponent({
         },
     },
 
-    emits: ['refresh', 'cancelled'],
+    emits: ['cancelled'],
 
     data() {
         return {
-            isRefreshing: false,
             isCancelling: false,
             error: '',
             successMessage: '',
@@ -139,14 +131,18 @@ export default defineComponent({
         statusClass(): string {
             if (this.process.cancelled) return 'error'
             const pending = this.process.signersPending || []
-            if (pending.length === 0 && (this.process.signersCompleted?.length || 0) > 0) return 'success'
+            const completed = this.process.signersCompleted || []
+            const rejected = this.process.signersRejected || []
+            if (pending.length === 0 && (completed.length > 0 || rejected.length > 0)) return 'success'
             return 'pending'
         },
 
         statusLabel(): string {
             if (this.process.cancelled) return t('integration_signd', 'Cancelled')
             const pending = this.process.signersPending || []
-            if (pending.length === 0 && (this.process.signersCompleted?.length || 0) > 0) return t('integration_signd', 'Completed')
+            const completed = this.process.signersCompleted || []
+            const rejected = this.process.signersRejected || []
+            if (pending.length === 0 && (completed.length > 0 || rejected.length > 0)) return t('integration_signd', 'Completed')
             return t('integration_signd', 'Pending')
         },
 
@@ -168,7 +164,7 @@ export default defineComponent({
 
         fileLink(): string {
             if (!this.fileId) return ''
-            return generateUrl('/apps/files/?fileid={fileId}', { fileId: this.fileId })
+            return generateUrl('/apps/files/files/{fileId}', { fileId: this.fileId })
         },
 
         initiator(): string {
@@ -181,15 +177,15 @@ export default defineComponent({
             const pending = this.process.signersPending?.length || 0
             const total = completed + rejected + pending
             if (total === 0) return '—'
-            return `${completed}/${total}`
+            return `${completed} / ${rejected} / ${total}`
         },
 
         canDownload(): boolean {
-            // Process is finished (no pending signers, has completed signers, not cancelled)
             if (this.process.cancelled) return false
             const pending = this.process.signersPending || []
             const completed = this.process.signersCompleted || []
-            return pending.length === 0 && completed.length > 0
+            const rejected = this.process.signersRejected || []
+            return pending.length === 0 && (completed.length > 0 || rejected.length > 0)
         },
 
         canCancel(): boolean {
@@ -212,36 +208,21 @@ export default defineComponent({
             }
         },
 
-        async onRefresh() {
-            this.isRefreshing = true
-            this.error = ''
-            this.successMessage = ''
-
-            try {
-                await processApi.refresh(this.process.processId)
-                this.$emit('refresh')
-            } catch (e) {
-                this.error = extractErrorMessage(e, t('integration_signd', 'Failed to refresh process status.'))
-            } finally {
-                this.isRefreshing = false
-            }
-        },
-
         async onDownload() {
             this.error = ''
             this.successMessage = ''
 
             try {
-                const result = await processApi.download(this.process.processId, this.process.filename)
+                const result = await processApi.download(this.process.documentId, this.process.filename)
                 notifyFileCreated(result)
                 if (result.targetDirMissing) {
-                    this.successMessage = t('integration_signd', 'Original folder no longer exists. Signed PDF was saved to your home folder.')
+                    this.successMessage = t('integration_signd', 'Original folder no longer exists. Finished PDF was saved to your home folder.')
                 } else {
-                    this.successMessage = t('integration_signd', 'Signed PDF saved.')
+                    this.successMessage = t('integration_signd', 'Finished PDF saved.')
                 }
                 this.$emit('refresh')
             } catch (e) {
-                this.error = extractErrorMessage(e, t('integration_signd', 'Failed to download signed PDF.'))
+                this.error = extractErrorMessage(e, t('integration_signd', 'Failed to save finished PDF.'))
             }
         },
 
@@ -251,7 +232,7 @@ export default defineComponent({
             this.successMessage = ''
 
             try {
-                await overviewApi.cancel(this.process.processId)
+                await overviewApi.cancel(this.process.documentId)
                 this.successMessage = t('integration_signd', 'Process cancelled.')
                 this.$emit('cancelled')
             } catch (e) {

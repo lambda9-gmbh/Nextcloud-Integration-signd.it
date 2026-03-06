@@ -23,9 +23,9 @@
                 </tr>
                 <tr
                     v-for="process in processes"
-                    :key="process.processId"
+                    :key="process.documentId"
                     class="signd-overview-table__row"
-                    :class="{ 'signd-overview-table__row--selected': selectedId === process.processId }"
+                    :class="{ 'signd-overview-table__row--selected': selectedId === process.documentId }"
                     @click="$emit('select', process)">
                     <td>{{ process.name || '—' }}</td>
                     <td>
@@ -47,7 +47,7 @@
                         </span>
                     </td>
                     <td>{{ formatDate(process.created) }}</td>
-                    <td>{{ getProgress(process) }}</td>
+                    <td class="signd-progress" v-html="getProgress(process)" />
                 </tr>
             </tbody>
         </table>
@@ -137,7 +137,7 @@ export default defineComponent({
         getFileLink(process: FoundProcess): string {
             const fileId = this.getFileId(process)
             if (!fileId) return ''
-            return generateUrl('/apps/files/?fileid={fileId}', { fileId })
+            return generateUrl('/apps/files/files/{fileId}', { fileId })
         },
 
         getInitiator(process: FoundProcess): string {
@@ -147,14 +147,18 @@ export default defineComponent({
         getStatusClass(process: FoundProcess): string {
             if (process.cancelled) return 'error'
             const pending = process.signersPending || []
-            if (pending.length === 0 && (process.signersCompleted?.length || 0) > 0) return 'success'
+            const completed = process.signersCompleted || []
+            const rejected = process.signersRejected || []
+            if (pending.length === 0 && (completed.length > 0 || rejected.length > 0)) return 'success'
             return 'pending'
         },
 
         getStatusLabel(process: FoundProcess): string {
             if (process.cancelled) return t('integration_signd', 'Cancelled')
             const pending = process.signersPending || []
-            if (pending.length === 0 && (process.signersCompleted?.length || 0) > 0) return t('integration_signd', 'Completed')
+            const completed = process.signersCompleted || []
+            const rejected = process.signersRejected || []
+            if (pending.length === 0 && (completed.length > 0 || rejected.length > 0)) return t('integration_signd', 'Completed')
             return t('integration_signd', 'Pending')
         },
 
@@ -164,7 +168,7 @@ export default defineComponent({
             const pending = process.signersPending?.length || 0
             const total = completed + rejected + pending
             if (total === 0) return '—'
-            return `${completed}/${total}`
+            return `<span class="signd-progress__completed">${completed}</span> / <span class="signd-progress__rejected">${rejected}</span> / ${total}`
         },
 
         formatDate(dateStr?: string): string {
@@ -254,6 +258,18 @@ export default defineComponent({
     &--pending {
         background: var(--color-warning);
         color: var(--color-warning-text);
+    }
+}
+
+.signd-progress {
+    :deep(.signd-progress__completed) {
+        color: var(--color-success-text);
+        font-weight: 600;
+    }
+
+    :deep(.signd-progress__rejected) {
+        color: var(--color-error-text);
+        font-weight: 600;
     }
 }
 

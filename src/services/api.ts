@@ -13,6 +13,7 @@ const errorCodeMessages: Record<string, () => string> = {
 	SIGND_UNAUTHORIZED: () => t('integration_signd', 'The signd.it API key is no longer valid. Please contact your administrator.'),
 	STORAGE_ERROR: () => t('integration_signd', 'Not enough storage space or insufficient permissions. Please free up space and try again.'),
 	FILE_NOT_FOUND: () => t('integration_signd', 'The original file no longer exists in Nextcloud.'),
+	PDF_NOT_READY: () => t('integration_signd', 'The finished PDF is not ready yet. Please try again in a moment.'),
 }
 
 export function extractErrorMessage(error: unknown, fallback: string): string {
@@ -135,6 +136,8 @@ export interface SignerInfo {
     signed?: string
     rejected?: string
     invited?: string
+    signatureKey?: string
+    rejectedReason?: string
 }
 
 export interface ProcessMeta {
@@ -162,6 +165,8 @@ export interface FoundSigner {
     signed?: string
     rejected?: string
     invited?: string
+    signatureKey?: string
+    rejectedReason?: string
 }
 
 export interface FoundProcessMetaData {
@@ -177,7 +182,7 @@ export interface FoundProcessMetaData {
 }
 
 export interface FoundProcess {
-    processId: string
+    documentId: string
     name?: string
     filename?: string
     created?: string

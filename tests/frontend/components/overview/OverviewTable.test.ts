@@ -72,7 +72,7 @@ describe('OverviewTable', () => {
 
 		const link = wrapper.find('.signd-file-link')
 		expect(link.exists()).toBe(true)
-		expect(link.attributes('href')).toContain('fileid')
+		expect(link.attributes('href')).toContain('files/')
 	})
 
 	it('hides file link when file is deleted', () => {
@@ -127,8 +127,8 @@ describe('OverviewTable', () => {
 			})],
 		})
 
-		// 2 completed out of 4 total
-		expect(wrapper.text()).toContain('2/4')
+		// 2 completed / 1 rejected / 4 total
+		expect(wrapper.text()).toContain('2 / 1 / 4')
 	})
 
 	it('shows empty state message', () => {

@@ -50,7 +50,7 @@
                         :processes="processes"
                         :sort-criteria="sortCriteria"
                         :sort-order="sortOrder"
-                        :selected-id="selectedProcess?.processId ?? ''"
+                        :selected-id="selectedProcess?.documentId ?? ''"
                         @select="onSelectProcess"
                         @update:sort-criteria="onSortCriteriaChange"
                         @update:sort-order="onSortOrderChange" />
@@ -73,7 +73,6 @@
             @close="selectedProcess = null">
             <ProcessDetail
                 :process="selectedProcess"
-                @refresh="onDetailRefresh"
                 @cancelled="onDetailCancelled" />
         </NcAppSidebar>
     </NcContent>
@@ -181,7 +180,7 @@ export default defineComponent({
                 // Update selected process if it's still in the list
                 if (this.selectedProcess) {
                     const updated = this.processes.find(
-                        (p) => p.processId === this.selectedProcess!.processId,
+                        (p) => p.documentId === this.selectedProcess!.documentId,
                     )
                     this.selectedProcess = updated || null
                 }
@@ -244,10 +243,6 @@ export default defineComponent({
 
         onSelectProcess(process: FoundProcess) {
             this.selectedProcess = process
-        },
-
-        onDetailRefresh() {
-            this.loadProcesses()
         },
 
         onDetailCancelled() {

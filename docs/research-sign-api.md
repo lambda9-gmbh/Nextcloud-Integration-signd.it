@@ -1,6 +1,6 @@
 # signd API - Analysis
 
-> See also: [decisions.md](decisions.md) | [research-nextcloud-app-dev.md](research-nextcloud-app-dev.md) | [status.md](status.md)
+> See also: [research-nextcloud-app-dev.md](research-nextcloud-app-dev.md)
 >
 > **OpenAPI Spec (source of truth):** `../digisign/src/main/resources/static/api.yaml`
 
@@ -97,6 +97,19 @@
 - `signersCompleted[]`, `signersRejected[]`, `signersPending[]`
 - `apiClientMetaData`
 - `lastSignerAction`, `interrupted`, `cancelled`
+
+### SignerCompleted
+- `id`, `clearName`, `email`, `location`
+- `signed`, `signedTimezone`, `invited`
+- `stampMode`, `additionalInputs[]`
+- `signatureKey` - Key to retrieve the (animated) signature image from signd
+
+### SignerRejected
+- `id`, `rejected`, `rejectedTimezone`, `rejectedReason`
+- `rejectionByCancellation`, `invited`, `stampMode`
+
+### SignerPending
+- `id`, `sequence`, `accessCode`, `stampMode`
 
 ### CreatedDocument (Response to `/api/new`)
 - `id` - Document ID

@@ -20,6 +20,9 @@ npm run up
 # Enable app + allow local API requests
 npm run enable-app
 npm run occ -- config:system:set allow_local_remote_servers --value=true --type=boolean
+
+# Run after app version change in info.xml or when otherwise nextcloud needs to be updated (shown in browser)
+npm run occ -- upgrade
 ```
 
 Nextcloud runs at **http://localhost:8080** (login: `admin` / `admin`).
@@ -29,7 +32,7 @@ Nextcloud runs at **http://localhost:8080** (login: `admin` / `admin`).
 ```bash
 npm run watch          # Frontend with hot reload
 npm run logs           # NC container logs
-npm run occ -- app:list  # Run any occ command in the container
+npm run occ -- <command>  # Run any occ command in the container
 npm run down           # Stop containers
 npm run restart        # Restart containers
 ```
@@ -135,8 +138,5 @@ integration_signd/
 
 ## Further Documentation
 
-- [status.md](status.md) — Development status + open items
-- [decisions.md](decisions.md) — Architecture decisions
-- [edge-cases.md](edge-cases.md) — Error scenarios & assessments
 - [research-sign-api.md](research-sign-api.md) — signd API analysis
 - [research-nextcloud-app-dev.md](research-nextcloud-app-dev.md) — Nextcloud app development research
