@@ -3,6 +3,7 @@ OC.L10N.register('integration_signd', {
     "API key is configured.": "API-Schlüssel ist konfiguriert.",
     "Account details": "Kontodaten",
     "All": "Alle",
+    "by {user}": "von {user}",
     "Cancel draft": "Entwurf löschen",
     "Cancel process": "Prozess abbrechen",
     "Cancelled": "Abgebrochen",

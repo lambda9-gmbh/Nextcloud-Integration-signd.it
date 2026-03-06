@@ -4,6 +4,7 @@
         "API key is configured.": "API-nøglen er konfigureret.",
         "Account details": "Kontooplysninger",
         "All": "Alle",
+        "by {user}": "af {user}",
         "Cancel draft": "Slet kladde",
         "Cancel process": "Annuller proces",
         "Cancelled": "Annulleret",

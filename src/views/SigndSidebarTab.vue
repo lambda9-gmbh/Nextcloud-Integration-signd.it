@@ -45,9 +45,17 @@
                     </NcButton>
                 </div>
 
+                <div v-if="processes.length > 0 && hasOtherUsers" class="signd-filter">
+                    <NcCheckboxRadioSwitch
+                        :model-value="onlyMine"
+                        @update:model-value="onlyMine = $event">
+                        {{ t('integration_signd', 'Only mine') }}
+                    </NcCheckboxRadioSwitch>
+                </div>
+
                 <ProcessList
                     v-if="processes.length > 0"
-                    :processes="processes"
+                    :processes="filteredProcesses"
                     @download="downloadPdf"
                     @resume-wizard="resumeWizard"
                     @cancel-wizard="cancelWizard" />
@@ -74,7 +82,10 @@ import { translate as t } from '@nextcloud/l10n'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 
+import { getCurrentUser } from '@nextcloud/auth'
+
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -91,6 +102,7 @@ export default defineComponent({
 
     components: {
         NcButton,
+        NcCheckboxRadioSwitch,
         NcNoteCard,
         NcLoadingIcon,
         NcIconSvgWrapper,
@@ -113,6 +125,8 @@ export default defineComponent({
             isRefreshing: false,
             error: '',
             warning: '',
+            onlyMine: false,
+            currentUserId: getCurrentUser()?.uid ?? '',
             mdiRefresh: 'M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z',
         }
     },
@@ -124,6 +138,15 @@ export default defineComponent({
 
         fileName(): string {
             return this.fileInfo?.name ?? ''
+        },
+
+        hasOtherUsers(): boolean {
+            return this.processes.some(p => p.userId !== this.currentUserId)
+        },
+
+        filteredProcesses(): SigndProcess[] {
+            if (!this.onlyMine) return this.processes
+            return this.processes.filter(p => p.userId === this.currentUserId)
         },
 
         overviewUrl(): string {
@@ -232,6 +255,10 @@ export default defineComponent({
         align-items: center;
         gap: 4px;
         margin-bottom: 4px;
+    }
+
+    .signd-filter {
+        margin-bottom: 8px;
     }
 
     .signd-overview-link {

@@ -9,8 +9,9 @@
             </span>
         </div>
 
-        <div class="signd-process-date">
-            {{ t('integration_signd', 'Created: {date}', { date: formatDate(process.meta?.created) }) }}
+        <div class="signd-process-meta">
+            <span>{{ t('integration_signd', 'Created: {date}', { date: formatDate(process.meta?.created) }) }}</span>
+            <span v-if="process.userId">{{ t('integration_signd', 'by {user}', { user: process.userId }) }}</span>
         </div>
 
         <!-- Signer details from meta -->
@@ -212,10 +213,12 @@ export default defineComponent({
         }
     }
 
-    .signd-process-date {
+    .signd-process-meta {
         font-size: 12px;
         color: var(--color-text-maxcontrast);
         margin-bottom: 8px;
+        display: flex;
+        gap: 4px;
     }
 
     .signd-process-actions {
