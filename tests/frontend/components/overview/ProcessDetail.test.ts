@@ -3,16 +3,20 @@ import { mount, flushPromises } from '@vue/test-utils'
 import ProcessDetail from '@/components/overview/ProcessDetail.vue'
 import type { FoundProcess } from '@/services/api'
 
-vi.mock('@/services/api', () => ({
-	overviewApi: {
-		cancel: vi.fn(),
-	},
-	processApi: {
-		refresh: vi.fn(),
-		download: vi.fn(),
-	},
-	extractErrorMessage: vi.fn((_e: unknown, fallback: string) => fallback),
-}))
+vi.mock('@/services/api', async (importOriginal) => {
+	const actual = await importOriginal<Record<string, unknown>>()
+	return {
+		...actual,
+		overviewApi: {
+			cancel: vi.fn(),
+		},
+		processApi: {
+			refresh: vi.fn(),
+			download: vi.fn(),
+		},
+		extractErrorMessage: vi.fn((_e: unknown, fallback: string) => fallback),
+	}
+})
 
 import { overviewApi, processApi, extractErrorMessage } from '@/services/api'
 

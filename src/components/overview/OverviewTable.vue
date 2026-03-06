@@ -58,8 +58,7 @@
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
-
+import { generateFileLink } from '../../services/api'
 import type { FoundProcess } from '../../services/api'
 
 interface Column {
@@ -137,7 +136,8 @@ export default defineComponent({
         getFileLink(process: FoundProcess): string {
             const fileId = this.getFileId(process)
             if (!fileId) return ''
-            return generateUrl('/apps/files/files/{fileId}', { fileId })
+            const ncFilePath = process.apiClientMetaData?.applicationMetaData?.ncFilePath
+            return generateFileLink(fileId, ncFilePath)
         },
 
         getInitiator(process: FoundProcess): string {

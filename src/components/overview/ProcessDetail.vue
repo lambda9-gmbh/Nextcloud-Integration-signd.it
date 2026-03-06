@@ -89,14 +89,13 @@
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 import SignerList from '../SignerList.vue'
-import { overviewApi, processApi, extractErrorMessage } from '../../services/api'
+import { overviewApi, processApi, extractErrorMessage, generateFileLink } from '../../services/api'
 import { notifyFileCreated } from '../../services/fileListNotify'
 import type { FoundProcess } from '../../services/api'
 
@@ -164,7 +163,8 @@ export default defineComponent({
 
         fileLink(): string {
             if (!this.fileId) return ''
-            return generateUrl('/apps/files/files/{fileId}', { fileId: this.fileId })
+            const ncFilePath = this.process.apiClientMetaData?.applicationMetaData?.ncFilePath
+            return generateFileLink(this.fileId, ncFilePath)
         },
 
         initiator(): string {

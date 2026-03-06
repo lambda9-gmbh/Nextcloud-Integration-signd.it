@@ -64,7 +64,7 @@
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
+import { generateFileLink } from '../services/api'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -129,7 +129,7 @@ export default defineComponent({
         },
 
         signedPdfLink(): string {
-            return generateUrl('/apps/files/files/{fileId}?openfile=true', { fileId: this.process.finishedPdfFileId })
+            return generateFileLink(this.process.finishedPdfFileId!, this.process.finishedPdfPath, 'openfile=true')
         },
 
         statusLabel(): string {

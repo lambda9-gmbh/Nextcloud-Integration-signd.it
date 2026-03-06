@@ -5,6 +5,39 @@ import { generateUrl } from '@nextcloud/router'
 const baseUrl = generateUrl('/apps/integration_signd')
 
 // ──────────────────────────────────────
+// File link helpers
+// ──────────────────────────────────────
+
+/**
+ * Extract the directory from an internal NC path (e.g. /admin/files/Documents/foo.pdf → /Documents)
+ * and build a Files app URL with the correct dir query param.
+ */
+export function generateFileLink(fileId: string | number, ncFilePath?: string | null, extra?: string): string {
+	const base = generateUrl('/apps/files/files/{fileId}', { fileId: String(fileId) })
+	const dir = getDirFromNcPath(ncFilePath)
+	const params = new URLSearchParams()
+	if (dir) params.set('dir', dir)
+	if (extra) {
+		for (const [k, v] of new URLSearchParams(extra)) {
+			params.set(k, v)
+		}
+	}
+	const qs = params.toString()
+	return qs ? `${base}?${qs}` : base
+}
+
+function getDirFromNcPath(ncFilePath?: string | null): string {
+	if (!ncFilePath) return ''
+	const filesMarker = '/files/'
+	const idx = ncFilePath.indexOf(filesMarker)
+	if (idx === -1) return ''
+	const relative = ncFilePath.substring(idx + filesMarker.length - 1) // keep leading /
+	const lastSlash = relative.lastIndexOf('/')
+	if (lastSlash <= 0) return '/'
+	return relative.substring(0, lastSlash)
+}
+
+// ──────────────────────────────────────
 // Error handling
 // ──────────────────────────────────────
 
