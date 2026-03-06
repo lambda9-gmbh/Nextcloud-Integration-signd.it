@@ -6,7 +6,6 @@ use OCA\IntegrationSignd\AppInfo\Application;
 use OCP\Util;
 
 Util::addScript(Application::APP_ID, 'integration_signd-main-settings');
-Util::addStyle(Application::APP_ID, 'integration_signd-main-settings');
 
 ?>
 

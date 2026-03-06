@@ -2,16 +2,17 @@ import { vi } from 'vitest'
 
 // Mock @nextcloud/axios — returns a minimal axios-like object
 vi.mock('@nextcloud/axios', () => {
+	const isAxiosError = (error: unknown): boolean => {
+		return typeof error === 'object' && error !== null && 'isAxiosError' in error
+	}
 	const mockAxios = {
 		get: vi.fn(),
 		post: vi.fn(),
 		put: vi.fn(),
 		delete: vi.fn(),
-		isAxiosError: (error: unknown): boolean => {
-			return typeof error === 'object' && error !== null && 'isAxiosError' in error
-		},
+		isAxiosError,
 	}
-	return { default: mockAxios }
+	return { default: mockAxios, isAxiosError }
 })
 
 // Mock @nextcloud/router

@@ -1,4 +1,4 @@
-import axios from '@nextcloud/axios'
+import axios, { isAxiosError } from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
@@ -50,7 +50,7 @@ const errorCodeMessages: Record<string, () => string> = {
 }
 
 export function extractErrorMessage(error: unknown, fallback: string): string {
-	if (axios.isAxiosError(error)) {
+	if (isAxiosError(error)) {
 		const data = error.response?.data
 		if (data?.errorCode && errorCodeMessages[data.errorCode]) {
 			return errorCodeMessages[data.errorCode]()
