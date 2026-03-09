@@ -13,6 +13,17 @@ Nextcloud app (v1, NC 30–32) for integration with signd.it (digital PDF signin
 - Language in code: English.
 - Do **NOT** look at the existing sign-plugin — completely new approach.
 
+### Translations (l10n)
+
+**Every new or changed user-facing string must be added to all translation files.**
+
+- Files: `l10n/{en,de,da,fr,es,it,pl,pt}.json` + matching `.js` files (both must be updated)
+- Format `.json`: `"Key": "Translated value"` inside `"translations": { ... }`
+- Format `.js`: `"Key": "Translated value",` inside `OC.L10N.register(...)`
+- Entries are **sorted alphabetically** by key
+- In code, use `t('integration_signd', 'My string')` (imported from `@nextcloud/l10n`)
+- When adding a feature or fixing a bug that touches UI text, check **all** new `t()` calls and ensure every string exists in all 8 language files
+
 ## Tech Stack
 
 | Area | Technology |
