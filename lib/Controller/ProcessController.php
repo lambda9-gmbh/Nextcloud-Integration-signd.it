@@ -36,6 +36,23 @@ class ProcessController extends Controller {
     }
 
     /**
+     * Get current user's display name and email
+     *
+     * @NoAdminRequired
+     */
+    public function currentUser(): JSONResponse {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            return new JSONResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+        }
+
+        return new JSONResponse([
+            'displayName' => $user->getDisplayName(),
+            'email' => $user->getEMailAddress() ?? '',
+        ]);
+    }
+
+    /**
      * Get all processes for a file
      *
      * @NoAdminRequired
@@ -119,7 +136,7 @@ class ProcessController extends Controller {
      *
      * @NoAdminRequired
      */
-    public function startWizard(int $fileId): JSONResponse {
+    public function startWizard(int $fileId, bool $notifyInitiator = true, string $initiatorEmail = ''): JSONResponse {
         $user = $this->userSession->getUser();
         if ($user === null) {
             return new JSONResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
@@ -152,6 +169,7 @@ class ProcessController extends Controller {
                 'pdfFilename' => $file->getName(),
                 'pdfData' => $base64Content,
                 'name' => $file->getName(),
+                'initiatorName' => $user->getDisplayName(),
                 'apiClientMetaData' => json_encode([
                     'applicationName' => 'nextcloud-signd',
                     'applicationMetaData' => [
@@ -163,6 +181,18 @@ class ProcessController extends Controller {
                     ],
                 ]),
             ];
+
+            // Initiator email: disabled, custom, or fallback to NC user email
+            if (!$notifyInitiator) {
+                $wizardData['initiatorEmail'] = '';
+            } elseif ($initiatorEmail !== '') {
+                $wizardData['initiatorEmail'] = $initiatorEmail;
+            } else {
+                $userEmail = $user->getEMailAddress();
+                if ($userEmail !== null && $userEmail !== '') {
+                    $wizardData['initiatorEmail'] = $userEmail;
+                }
+            }
 
             // Call sign API
             $result = $this->signApiService->startWizard($wizardData);

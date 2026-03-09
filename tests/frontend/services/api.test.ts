@@ -203,17 +203,38 @@ describe('processApi', () => {
 		expect(mockedAxios.get).toHaveBeenCalledWith('/apps/integration_signd/api/processes/42')
 	})
 
-	it('startWizard sends fileId in body', async () => {
+	it('getCurrentUser calls correct endpoint', async () => {
+		const mockData = { displayName: 'Admin', email: 'admin@example.com' }
+		mockedAxios.get.mockResolvedValueOnce({ data: mockData })
+
+		const result = await processApi.getCurrentUser()
+
+		expect(mockedAxios.get).toHaveBeenCalledWith('/apps/integration_signd/api/processes/current-user')
+		expect(result).toEqual(mockData)
+	})
+
+	it('startWizard sends options in body', async () => {
 		const mockResult = { wizardUrl: 'https://signd.it/wizard/p1', processId: 'p1' }
 		mockedAxios.post.mockResolvedValueOnce({ data: mockResult })
 
-		const result = await processApi.startWizard(42)
+		const result = await processApi.startWizard({ fileId: 42, notifyInitiator: true, initiatorEmail: 'test@example.com' })
+
+		expect(mockedAxios.post).toHaveBeenCalledWith(
+			'/apps/integration_signd/api/processes/start-wizard',
+			{ fileId: 42, notifyInitiator: true, initiatorEmail: 'test@example.com' },
+		)
+		expect(result).toEqual(mockResult)
+	})
+
+	it('startWizard sends minimal options', async () => {
+		mockedAxios.post.mockResolvedValueOnce({ data: { wizardUrl: 'url', processId: 'p1' } })
+
+		await processApi.startWizard({ fileId: 42 })
 
 		expect(mockedAxios.post).toHaveBeenCalledWith(
 			'/apps/integration_signd/api/processes/start-wizard',
 			{ fileId: 42 },
 		)
-		expect(result).toEqual(mockResult)
 	})
 
 	it('refresh calls correct endpoint', async () => {

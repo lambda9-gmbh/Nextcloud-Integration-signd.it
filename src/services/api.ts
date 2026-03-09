@@ -271,14 +271,30 @@ export const overviewApi = {
     },
 }
 
+export interface CurrentUser {
+    displayName: string
+    email: string
+}
+
+export interface StartWizardOptions {
+    fileId: number
+    notifyInitiator?: boolean
+    initiatorEmail?: string
+}
+
 export const processApi = {
+    async getCurrentUser(): Promise<CurrentUser> {
+        const { data } = await axios.get(`${baseUrl}/api/processes/current-user`)
+        return data
+    },
+
     async getByFileId(fileId: number): Promise<SigndProcess[]> {
         const { data } = await axios.get(`${baseUrl}/api/processes/${fileId}`)
         return data
     },
 
-    async startWizard(fileId: number): Promise<{ wizardUrl: string; processId: string }> {
-        const { data } = await axios.post(`${baseUrl}/api/processes/start-wizard`, { fileId })
+    async startWizard(options: StartWizardOptions): Promise<{ wizardUrl: string; processId: string }> {
+        const { data } = await axios.post(`${baseUrl}/api/processes/start-wizard`, options)
         return data
     },
 

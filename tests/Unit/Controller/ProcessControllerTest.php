@@ -52,9 +52,11 @@ class ProcessControllerTest extends TestCase {
         );
     }
 
-    private function mockUser(string $uid = 'admin'): IUser&MockObject {
+    private function mockUser(string $uid = 'admin', string $displayName = 'Admin User', string $email = 'admin@example.com'): IUser&MockObject {
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn($uid);
+        $user->method('getDisplayName')->willReturn($displayName);
+        $user->method('getEMailAddress')->willReturn($email);
         $this->userSession->method('getUser')->willReturn($user);
         return $user;
     }
@@ -65,6 +67,39 @@ class ProcessControllerTest extends TestCase {
         $process->setFileId($fileId);
         $process->setUserId('admin');
         return $process;
+    }
+
+    // ── currentUser ──
+
+    public function testCurrentUserReturns401WhenNotAuthenticated(): void {
+        $this->userSession->method('getUser')->willReturn(null);
+
+        $response = $this->controller->currentUser();
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+    }
+
+    public function testCurrentUserReturnsDisplayNameAndEmail(): void {
+        $this->mockUser('admin', 'Admin User', 'admin@example.com');
+
+        $response = $this->controller->currentUser();
+        $data = $response->getData();
+
+        $this->assertSame(200, $response->getStatus());
+        $this->assertSame('Admin User', $data['displayName']);
+        $this->assertSame('admin@example.com', $data['email']);
+    }
+
+    public function testCurrentUserReturnsEmptyStringWhenNoEmail(): void {
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('admin');
+        $user->method('getDisplayName')->willReturn('Admin');
+        $user->method('getEMailAddress')->willReturn(null);
+        $this->userSession->method('getUser')->willReturn($user);
+
+        $response = $this->controller->currentUser();
+
+        $this->assertSame('', $response->getData()['email']);
     }
 
     // ── getByFileId ──
@@ -272,6 +307,97 @@ class ProcessControllerTest extends TestCase {
 
         $this->assertSame('https://signd.it/wizard/123', $data['wizardUrl']);
         $this->assertSame('proc-new', $data['processId']);
+    }
+
+    public function testStartWizardSendsInitiatorName(): void {
+        $this->mockUser('testuser', 'Test User', 'test@example.com');
+        $this->config->method('getSystemValue')->willReturn('inst-id');
+
+        $parentFolder = $this->createMock(Folder::class);
+        $parentFolder->method('getPath')->willReturn('/testuser/files');
+
+        $file = $this->createMock(File::class);
+        $file->method('getName')->willReturn('test.pdf');
+        $file->method('getContent')->willReturn('content');
+        $file->method('getPath')->willReturn('/testuser/files/test.pdf');
+        $file->method('getParent')->willReturn($parentFolder);
+
+        $userFolder = $this->createMock(Folder::class);
+        $userFolder->method('getById')->willReturn([$file]);
+        $this->rootFolder->method('getUserFolder')->willReturn($userFolder);
+
+        $this->signApiService->expects($this->once())
+            ->method('startWizard')
+            ->with($this->callback(function (array $data): bool {
+                $this->assertSame('Test User', $data['initiatorName']);
+                $this->assertSame('test@example.com', $data['initiatorEmail']);
+                return true;
+            }))
+            ->willReturn(['processId' => 'p1', 'wizardUrl' => 'https://signd.it/w']);
+
+        $this->processMapper->method('insert');
+
+        $this->controller->startWizard(42);
+    }
+
+    public function testStartWizardDisablesNotificationsWhenRequested(): void {
+        $this->mockUser('testuser', 'Test User', 'test@example.com');
+        $this->config->method('getSystemValue')->willReturn('inst-id');
+
+        $parentFolder = $this->createMock(Folder::class);
+        $parentFolder->method('getPath')->willReturn('/testuser/files');
+
+        $file = $this->createMock(File::class);
+        $file->method('getName')->willReturn('test.pdf');
+        $file->method('getContent')->willReturn('content');
+        $file->method('getPath')->willReturn('/testuser/files/test.pdf');
+        $file->method('getParent')->willReturn($parentFolder);
+
+        $userFolder = $this->createMock(Folder::class);
+        $userFolder->method('getById')->willReturn([$file]);
+        $this->rootFolder->method('getUserFolder')->willReturn($userFolder);
+
+        $this->signApiService->expects($this->once())
+            ->method('startWizard')
+            ->with($this->callback(function (array $data): bool {
+                $this->assertSame('', $data['initiatorEmail']);
+                return true;
+            }))
+            ->willReturn(['processId' => 'p1', 'wizardUrl' => 'https://signd.it/w']);
+
+        $this->processMapper->method('insert');
+
+        $this->controller->startWizard(42, false);
+    }
+
+    public function testStartWizardUsesCustomEmail(): void {
+        $this->mockUser('testuser', 'Test User', 'test@example.com');
+        $this->config->method('getSystemValue')->willReturn('inst-id');
+
+        $parentFolder = $this->createMock(Folder::class);
+        $parentFolder->method('getPath')->willReturn('/testuser/files');
+
+        $file = $this->createMock(File::class);
+        $file->method('getName')->willReturn('test.pdf');
+        $file->method('getContent')->willReturn('content');
+        $file->method('getPath')->willReturn('/testuser/files/test.pdf');
+        $file->method('getParent')->willReturn($parentFolder);
+
+        $userFolder = $this->createMock(Folder::class);
+        $userFolder->method('getById')->willReturn([$file]);
+        $this->rootFolder->method('getUserFolder')->willReturn($userFolder);
+
+        $this->signApiService->expects($this->once())
+            ->method('startWizard')
+            ->with($this->callback(function (array $data): bool {
+                $this->assertSame('custom@example.com', $data['initiatorEmail']);
+                return true;
+            }))
+            ->willReturn(['processId' => 'p1', 'wizardUrl' => 'https://signd.it/w']);
+
+        $this->processMapper->method('insert');
+
+        $this->controller->startWizard(42, true, 'custom@example.com');
     }
 
     public function testStartWizardStoresTargetDir(): void {

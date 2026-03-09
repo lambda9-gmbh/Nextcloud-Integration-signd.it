@@ -18,16 +18,16 @@
         <template v-if="process.meta">
             <SignerList
                 :label="t('integration_signd', 'Signed:')"
-                :signers="process.meta.signersCompleted" />
+                :signers="process.meta.signersCompleted || []" />
 
             <SignerList
                 :label="t('integration_signd', 'Rejected:')"
-                :signers="process.meta.signersRejected"
+                :signers="process.meta.signersRejected || []"
                 variant="rejected" />
 
             <SignerList
                 :label="t('integration_signd', 'Pending:')"
-                :signers="process.meta.signersPending"
+                :signers="process.meta.signersPending || []"
                 variant="pending" />
         </template>
 

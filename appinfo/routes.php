@@ -21,6 +21,7 @@ return [
         ['name' => 'overview#cancel', 'url' => '/api/overview/{processId}/cancel', 'verb' => 'POST'],
 
         // Processes
+        ['name' => 'process#currentUser', 'url' => '/api/processes/current-user', 'verb' => 'GET'],
         ['name' => 'process#getByFileId', 'url' => '/api/processes/{fileId}', 'verb' => 'GET'],
         ['name' => 'process#startWizard', 'url' => '/api/processes/start-wizard', 'verb' => 'POST'],
         ['name' => 'process#refresh', 'url' => '/api/processes/{processId}/refresh', 'verb' => 'POST'],
