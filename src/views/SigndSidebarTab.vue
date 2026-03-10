@@ -116,9 +116,21 @@ export default defineComponent({
     },
 
     props: {
-        fileInfo: {
+        node: {
             type: Object,
             default: null,
+        },
+        folder: {
+            type: Object,
+            default: null,
+        },
+        view: {
+            type: Object,
+            default: null,
+        },
+        active: {
+            type: Boolean,
+            default: false,
         },
     },
 
@@ -138,11 +150,11 @@ export default defineComponent({
 
     computed: {
         fileId(): number {
-            return this.fileInfo?.id ?? 0
+            return this.node?.fileid ?? 0
         },
 
         fileName(): string {
-            return this.fileInfo?.name ?? ''
+            return this.node?.basename ?? ''
         },
 
         hasOtherUsers(): boolean {

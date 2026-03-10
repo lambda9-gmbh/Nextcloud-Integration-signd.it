@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { davGetClient, davGetDefaultPropfind, davGetRootPath, davResultToNode } from '@nextcloud/files'
+import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { emit } from '@nextcloud/event-bus'
 
 interface DownloadResult {
@@ -22,7 +22,7 @@ export async function notifyFileCreated(result: DownloadResult): Promise<void> {
 	if (!result.name || !result.owner) return
 
 	try {
-		const rootPath = davGetRootPath()
+		const rootPath = getRootPath()
 
 		// Extract relative path from NC internal path
 		// e.g. "/admin/files/Documents/file.pdf" → "/Documents/file.pdf"
@@ -34,13 +34,13 @@ export async function notifyFileCreated(result: DownloadResult): Promise<void> {
 			relativePath = result.path
 		}
 
-		const client = davGetClient()
+		const client = getClient()
 		const stat = await client.stat(rootPath + relativePath, {
 			details: true,
-			data: davGetDefaultPropfind(),
-		}) as { data: Parameters<typeof davResultToNode>[0] }
+			data: getDefaultPropfind(),
+		}) as { data: Parameters<typeof resultToNode>[0] }
 
-		const node = davResultToNode(stat.data)
+		const node = resultToNode(stat.data)
 		emit('files:node:created', node)
 	} catch (e) {
 		console.warn('[signd] Failed to notify file list about new file', e)

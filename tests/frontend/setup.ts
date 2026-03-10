@@ -45,10 +45,20 @@ vi.mock('@nextcloud/initial-state', () => ({
 
 // Mock @nextcloud/files — avoid loading real module which depends on cancelable-promise
 vi.mock('@nextcloud/files', () => ({
-	davGetClient: vi.fn(() => ({ stat: vi.fn().mockResolvedValue({ data: {} }) })),
-	davGetDefaultPropfind: vi.fn(() => '<propfind-xml />'),
-	davGetRootPath: vi.fn(() => '/files/admin'),
-	davResultToNode: vi.fn((data: unknown) => ({ _nodeFromDav: true, data })),
+	registerFileAction: vi.fn(),
+	getSidebar: vi.fn(() => ({
+		open: vi.fn(),
+		close: vi.fn(),
+		setActiveTab: vi.fn(),
+		registerTab: vi.fn(),
+	})),
+}))
+
+vi.mock('@nextcloud/files/dav', () => ({
+	getClient: vi.fn(() => ({ stat: vi.fn().mockResolvedValue({ data: {} }) })),
+	getDefaultPropfind: vi.fn(() => '<propfind-xml />'),
+	getRootPath: vi.fn(() => '/files/admin'),
+	resultToNode: vi.fn((data: unknown) => ({ _nodeFromDav: true, data })),
 }))
 
 // Mock @nextcloud/event-bus

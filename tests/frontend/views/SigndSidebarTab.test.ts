@@ -73,12 +73,12 @@ function createProcess(overrides: Partial<SigndProcess> = {}): SigndProcess {
 	}
 }
 
-function mountTab(opts: { apiKeySet?: boolean; fileInfo?: object } = {}) {
+function mountTab(opts: { apiKeySet?: boolean; node?: object } = {}) {
 	mockedLoadState.mockReturnValue(opts.apiKeySet ?? true)
 
 	return mount(SigndSidebarTab, {
 		props: {
-			fileInfo: opts.fileInfo ?? { id: 42, name: 'test.pdf' },
+			node: opts.node ?? { fileid: 42, basename: 'test.pdf' },
 		},
 		global: { stubs },
 	})
@@ -113,7 +113,7 @@ describe('SigndSidebarTab', () => {
 		const processes = [createProcess()]
 		mockedProcessApi.getByFileId.mockResolvedValue(processes)
 
-		mountTab({ fileInfo: { id: 42, name: 'test.pdf' } })
+		mountTab({ node: { fileid: 42, basename: 'test.pdf' } })
 		await flushPromises()
 
 		expect(mockedProcessApi.getByFileId).toHaveBeenCalledWith(42)

@@ -3,74 +3,88 @@
 ## Prerequisites
 
 - Node.js 20+, npm 10+
-- PHP 8.1+, Composer
+- PHP 8.2+, Composer
 - Docker + Docker Compose
-- signd instance (local: `localhost:7755` or `signd.it`)
 
-## Setup
+## Quick Start
 
 ```bash
-# Install frontend dependencies + build
+# install dependencies
 npm install
+
+# build the application
 npm run build
 
-# Start Nextcloud + PostgreSQL (default: NC 32)
+# start the nextcloud container
 npm run up
 
-# Enable app + allow local API requests
+# enable the app (required only once)
 npm run enable-app
+
+# allow connection, when running a local signd.it dev server
 npm run occ -- config:system:set allow_local_remote_servers --value=true --type=boolean
 
-# Run after app version change in info.xml or when otherwise nextcloud needs to be updated (shown in browser)
+# OR use another signd.it instance for development (e.g. test.signd.it)
+npm run occ -- config:app:set integration_signd api_url --value=https://your-signd-instance.com
+```
+
+Nextcloud: **http://localhost:8080** — login `admin` / `admin`
+
+## npm Scripts
+
+| Command                    | Description                                          |
+|----------------------------|------------------------------------------------------|
+| `npm run up`               | Start Nextcloud + PostgreSQL                         |
+| `NC_VERSION=34 npm run up` | Start a specific NC version                          |
+| `npm run down`             | Stop containers                                      |
+| `npm run build`            | Build frontend                                       |
+| `npm run watch`            | Build frontend with hot reload                       |
+| `npm run enable-app`       | Enable the app in Nextcloud (once per new container) |
+| `npm run occ -- <command>` | Run any `occ` command in the container               |
+| `npm test`                 | Run frontend tests (Vitest, single run)              |
+| `npm run test:watch`       | Run frontend tests in watch mode                     |
+| `npm run test:e2e`         | Run E2E tests (Playwright, headless)                 |
+| `npm run test:e2e:headed`  | Run E2E tests with browser window                    |
+
+Each NC version gets its own Docker volumes — no conflicts when switching.
+
+## Versioning
+
+The app version follows [Nextcloud's release process](https://docs.nextcloud.com/server/latest/developer_manual/app_publishing_maintenance/release_process.html). Changes must be documented in `CHANGELOG.md` before releasing.
+
+After updating the app version in `appinfo/info.xml` (using the same container volume):
+
+```bash
 npm run occ -- upgrade
 ```
 
-Nextcloud runs at **http://localhost:8080** (login: `admin` / `admin`).
+## signd Server Configuration
 
-## Development Commands
+The app resolves the signd API URL in this order (see `SignApiService::getApiUrl()`):
 
-```bash
-npm run watch          # Frontend with hot reload
-npm run logs           # NC container logs
-npm run occ -- <command>  # Run any occ command in the container
-npm run down           # Stop containers
-npm run restart        # Restart containers
-```
+1. **App config** — set manually via occ
+2. **Env variable** — `SIGND_BASE_URL` (set in `docker-compose.yml`)
+3. **Default** — `https://signd.it`
 
-## Multi-Version Testing (NC 30, 31, 32)
+### Using a local signd instance
 
-The NC version is controlled via the `NC_VERSION` environment variable (default: `32`). Each version has its own Docker volumes — data persists across switches, no conflicts.
+`docker-compose.yml` sets `SIGND_BASE_URL=http://host.docker.internal:7755` by default, so the container can reach a signd server running on the host.
+
+Nextcloud blocks requests to local addresses by default. To allow them:
 
 ```bash
-# Start NC 30
-NC_VERSION=30 npm run up
-npm run enable-app
-
-# Switch to NC 31
-npm run down
-NC_VERSION=31 npm run up
-npm run enable-app
-
-# Back to NC 32 (default)
-npm run down
-npm run up
+npm run occ -- config:system:set allow_local_remote_servers --value=true --type=boolean
 ```
 
-`npm run enable-app` is only needed on the first start of a new version.
+### Using a remote signd instance
 
-## signd Server URL
+Override the URL via app config:
 
-Defaults to `https://signd.it`. For local development, `docker-compose.yml` sets the env variable `SIGND_BASE_URL=http://host.docker.internal:7755` in the container — this allows PHP to reach the signd server on the host.
-
-Resolution order (see `SignApiService::getApiUrl()`):
-1. App config (`occ config:app:set`)
-2. Env variable `SIGND_BASE_URL` (set in container via `docker-compose.yml`)
-3. Default: `https://signd.it`
-
-To manually change the URL:
 ```bash
-npm run occ -- config:app:set integration_signd api_url --value=http://host.docker.internal:7755
+npm run occ -- config:app:set integration_signd api_url --value=https://your-signd-instance.example.com
 ```
+
+No `allow_local_remote_servers` needed in this case.
 
 ## Tests
 
@@ -81,62 +95,45 @@ composer install
 vendor/bin/phpunit --testsuite Unit
 ```
 
-No running NC server required — all unit tests use mocks for NC interfaces.
+No running NC server required — all tests use mocks.
 
 ### Frontend (Vitest)
 
 ```bash
-npm install
 npm test              # single run
-npm run test:watch    # watch mode for development
+npm run test:watch    # watch mode
 ```
 
 ### E2E (Playwright)
 
-Prerequisite: Docker environment + app must be running.
+Requires running Docker environment with the app enabled and built.
 
 ```bash
-npm run up && npm run build && npm run enable-app
 npm run test:e2e           # headless
 npm run test:e2e:headed    # with browser window
 ```
 
-### Test Structure
+## Releasing
 
-```
-tests/
-  Unit/                 PHPUnit unit tests (mirrors lib/)
-  frontend/             Vitest frontend tests (mirrors src/)
-e2e/                    Playwright E2E tests
-  fixtures/             Test fixtures (login etc.)
-```
+Releases are automated via GitHub Actions. Pushing a version tag triggers the workflow (`.github/workflows/release.yml`), which builds the frontend, creates a tarball, and publishes a GitHub Release.
 
-## Architecture
+1. Update the version in `appinfo/info.xml`
+2. Commit and push to `main`
+3. Run the release script:
 
-```
-integration_signd/
-  appinfo/           info.xml, routes.php
-  lib/
-    AppInfo/          Application bootstrap
-    Controller/       SettingsController, ProcessController, OverviewController
-    Db/               Process Entity + Mapper (oc_integration_signd_processes)
-    Listener/         LoadAdditionalScriptsEvent → injects frontend into Files app
-    Migration/        DB schema
-    Service/          SignApiService (all signd API calls)
-    Settings/         AdminSettings + AdminSection (NC settings page)
-  src/
-    settings/         Admin settings Vue components (ApiKey, Login, Register)
-    views/            SigndSidebarTab, OverviewApp
-    components/       ProcessList, ProcessStatus, StartProcessButton, SignerList
-    components/overview/  OverviewToolbar, OverviewTable, OverviewPagination, ProcessDetail
-    services/api.ts   Frontend HTTP client
-    main-settings.ts  Entrypoint: Admin settings
-    main-files.ts     Entrypoint: Files app (FileAction + Sidebar tab)
-    main-overview.ts  Entrypoint: Overview page
-  templates/          PHP templates
+```bash
+./scripts/release.sh
 ```
 
-## Further Documentation
+The script reads the version from `info.xml`, creates the tag `v<version>`, and pushes it. The GitHub Action validates that the tag matches `info.xml` before building.
 
-- [research-sign-api.md](research-sign-api.md) — signd API analysis
-- [research-nextcloud-app-dev.md](research-nextcloud-app-dev.md) — Nextcloud app development research
+## Docker Volumes
+
+Each NC version stores its data in separate named volumes (`integration_signd_nextcloud_<version>`, `integration_signd_db_<version>`). To get a clean state for a specific version:
+
+```bash
+npm run down
+docker volume rm integration_signd_nextcloud_33 integration_signd_db_33
+npm run up
+npm run enable-app
+```

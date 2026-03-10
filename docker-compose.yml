@@ -1,6 +1,6 @@
 services:
   nextcloud:
-    image: nextcloud:${NC_VERSION:-32}
+    image: nextcloud:${NC_VERSION:-33}
     ports:
       - "8080:80"
     volumes:
@@ -39,6 +39,6 @@ services:
 
 volumes:
   nextcloud_data:
-    name: integration_signd_nextcloud_${NC_VERSION:-32}
+    name: integration_signd_nextcloud_${NC_VERSION:-33}
   db_data:
-    name: integration_signd_db_${NC_VERSION:-32}
+    name: integration_signd_db_${NC_VERSION:-33}

@@ -1,6 +1,6 @@
 # signd.it Integration – Nextcloud App
 
-Nextcloud app (v1, NC 30–32) for integration with signd.it (digital PDF signing).
+Nextcloud app (v2, NC 33+) for integration with signd.it (digital PDF signing).
 
 ## Documentation
 
@@ -28,12 +28,12 @@ Nextcloud app (v1, NC 30–32) for integration with signd.it (digital PDF signin
 
 | Area | Technology |
 |------|------------|
-| Backend | PHP 8.1+, NC App Framework |
+| Backend | PHP 8.2+, NC App Framework |
 | Frontend | Vue 3, TypeScript, Vite |
 | Build | `@nextcloud/vite-config`, three entrypoints |
-| NC packages | `@nextcloud/vue` v8, `@nextcloud/files` v3, `@nextcloud/axios`, `@nextcloud/router`, `@nextcloud/l10n`, `@nextcloud/initial-state` |
+| NC packages | `@nextcloud/vue` v9, `@nextcloud/files` v4, `@nextcloud/axios`, `@nextcloud/router`, `@nextcloud/l10n`, `@nextcloud/initial-state` |
 | DB | NC DB abstraction layer (QBMapper), table `oc_integration_signd_processes` |
-| Dev | Docker (NC 30–32 + PostgreSQL), frontend build natively on host |
+| Dev | Docker (NC 33 + PostgreSQL), frontend build natively on host |
 
 ## Project Structure
 
@@ -53,7 +53,7 @@ src/
   components/overview/ OverviewToolbar, OverviewTable, OverviewPagination, ProcessDetail
   services/api.ts     Frontend API client (Settings + Processes + Overview)
   main-settings.ts    Entrypoint: Admin settings
-  main-files.ts       Entrypoint: FileAction + Sidebar tab (Legacy, NC 30-32)
+  main-files.ts       Entrypoint: FileAction + Sidebar tab (Web Component, NC 33+)
   main-overview.ts    Entrypoint: Overview page (process list + detail sidebar)
 tests/
   Unit/               PHPUnit unit tests (mirrors lib/)
@@ -81,7 +81,7 @@ docs/                 Decisions, research, status
 
 ```bash
 npm install && npm run build   # Build frontend
-docker compose up -d           # Start NC + DB
+docker compose up -d           # Start NC 33 + DB
 npm run enable-app             # Enable app (integration_signd)
 npm run watch                  # Frontend dev with watch
 npm run logs                   # Container logs

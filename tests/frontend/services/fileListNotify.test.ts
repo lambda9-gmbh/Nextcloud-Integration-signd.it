@@ -5,11 +5,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock @nextcloud/files
 const mockStat = vi.fn()
-vi.mock('@nextcloud/files', () => ({
-	davGetClient: vi.fn(() => ({ stat: mockStat })),
-	davGetDefaultPropfind: vi.fn(() => '<propfind-xml />'),
-	davGetRootPath: vi.fn(() => '/files/admin'),
-	davResultToNode: vi.fn((data: unknown) => ({ _nodeFromDav: true, data })),
+vi.mock('@nextcloud/files/dav', () => ({
+	getClient: vi.fn(() => ({ stat: mockStat })),
+	getDefaultPropfind: vi.fn(() => '<propfind-xml />'),
+	getRootPath: vi.fn(() => '/files/admin'),
+	resultToNode: vi.fn((data: unknown) => ({ _nodeFromDav: true, data })),
 }))
 
 // Mock @nextcloud/event-bus
@@ -18,12 +18,12 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 import { notifyFileCreated } from '@/services/fileListNotify'
-import { davGetClient, davGetRootPath, davResultToNode } from '@nextcloud/files'
+import { getClient, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { emit } from '@nextcloud/event-bus'
 
 const mockedEmit = vi.mocked(emit)
-const mockedDavGetRootPath = vi.mocked(davGetRootPath)
-const mockedDavResultToNode = vi.mocked(davResultToNode)
+const mockedDavGetRootPath = vi.mocked(getRootPath)
+const mockedDavResultToNode = vi.mocked(resultToNode)
 
 describe('notifyFileCreated', () => {
 	beforeEach(() => {

@@ -26,7 +26,7 @@ Starten Sie Signaturprozesse direkt aus Ihrem Dateibrowser, verfolgen Sie den Si
 - Unterzeichnete Dokumente direkt in Ihre Cloud herunterladen
 - Admin-Einstellungen für API-Key-Verwaltung
 ]]></description>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <licence>AGPL-3.0-or-later</licence>
     <author mail="support@lambda9.de" homepage="https://lambda9.de">lambda9 GmbH</author>
     <namespace>IntegrationSignd</namespace>
@@ -39,8 +39,8 @@ Starten Sie Signaturprozesse direkt aus Ihrem Dateibrowser, verfolgen Sie den Si
     <screenshot>https://raw.githubusercontent.com/lambda9-gmbh/Nextcloud-Integration-signd.it/main/screenshots/admin_view.png</screenshot>
 
     <dependencies>
-        <php min-version="8.1" max-version="8.4"/>
-        <nextcloud min-version="30" max-version="32"/>
+        <php min-version="8.2" max-version="8.5"/>
+        <nextcloud min-version="33" max-version="33"/>
     </dependencies>
 
     <navigations>
