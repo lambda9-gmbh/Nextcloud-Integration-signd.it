@@ -45,6 +45,8 @@ jobs:
           cp -r appinfo build/integration_signd/
           # Backend
           cp -r lib build/integration_signd/
+          # Templates
+          cp -r templates build/integration_signd/
           # Frontend (built)
           cp -r js build/integration_signd/
           # Assets
