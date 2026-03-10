@@ -1,3 +1,8 @@
+<!--
+  SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
     <div class="signd-process-list">
         <ProcessStatus

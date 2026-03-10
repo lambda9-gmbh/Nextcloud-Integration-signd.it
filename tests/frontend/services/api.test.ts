@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from '@nextcloud/axios'
 import { extractErrorMessage, settingsApi, overviewApi, processApi } from '@/services/api'

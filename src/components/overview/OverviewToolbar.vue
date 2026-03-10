@@ -1,3 +1,8 @@
+<!--
+  SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
     <div class="toolbar">
         <NcTextField
@@ -103,8 +108,8 @@ export default defineComponent({
             dateToModel: null as Date | null,
             statusOptions: [
                 { value: 'ALL', label: t('integration_signd', 'All') },
-                { value: 'RUNNING', label: t('integration_signd', 'Running') },
-                { value: 'FINISHED', label: t('integration_signd', 'Finished') },
+                { value: 'RUNNING', label: t('integration_signd', 'Pending') },
+                { value: 'FINISHED', label: t('integration_signd', 'Completed') },
             ] as StatusOption[],
             searchDebounceTimer: null as ReturnType<typeof setTimeout> | null,
         }

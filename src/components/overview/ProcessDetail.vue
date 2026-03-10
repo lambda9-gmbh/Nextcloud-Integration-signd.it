@@ -1,3 +1,8 @@
+<!--
+  SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
     <div class="signd-process-detail">
         <div class="signd-process-detail__header">
@@ -55,6 +60,10 @@
         </div>
 
         <!-- Actions -->
+        <NcNoteCard v-if="process._finishedPdfDeleted" type="warning">
+            {{ t('integration_signd', 'Previously saved PDF was deleted.') }}
+        </NcNoteCard>
+
         <div class="signd-process-detail__actions">
             <NcButton
                 v-if="canDownload"
@@ -62,6 +71,10 @@
                 @click="onDownload">
                 {{ t('integration_signd', 'Save finished PDF') }}
             </NcButton>
+
+            <a v-if="process._finishedPdfFileId" :href="signedPdfLink" class="signd-pdf-link">
+                {{ t('integration_signd', 'Open finished PDF') }}
+            </a>
 
             <NcButton
                 v-if="canCancel"
@@ -180,8 +193,13 @@ export default defineComponent({
             return `${completed} / ${rejected} / ${total}`
         },
 
+        signedPdfLink(): string {
+            return generateFileLink(this.process._finishedPdfFileId!, this.process._finishedPdfPath, 'openfile=true')
+        },
+
         canDownload(): boolean {
             if (this.process.cancelled) return false
+            if (this.process._finishedPdfPath) return false
             const pending = this.process.signersPending || []
             const completed = this.process.signersCompleted || []
             const rejected = this.process.signersRejected || []
@@ -215,6 +233,7 @@ export default defineComponent({
             try {
                 const result = await processApi.download(this.process.documentId, this.process.filename)
                 notifyFileCreated(result)
+                this.process._finishedPdfPath = result.path
                 if (result.targetDirMissing) {
                     this.successMessage = t('integration_signd', 'Original folder no longer exists. Finished PDF was saved to your home folder.')
                 } else {
@@ -318,6 +337,16 @@ export default defineComponent({
 
     &--missing {
         color: var(--color-text-maxcontrast);
+    }
+}
+
+.signd-pdf-link {
+    font-size: 12px;
+    color: var(--color-primary-element);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
     }
 }
 </style>

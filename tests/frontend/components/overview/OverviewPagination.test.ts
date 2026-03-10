@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import OverviewPagination from '@/components/overview/OverviewPagination.vue'

@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 namespace OCA\IntegrationSignd\AppInfo;
 
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
-use OCA\IntegrationSignd\BackgroundJob\CleanupOrphanedProcessesJob;
 use OCA\IntegrationSignd\Listener\LoadAdditionalListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
@@ -25,7 +27,6 @@ class Application extends App implements IBootstrap {
             LoadAdditionalListener::class
         );
 
-        $context->registerBackgroundJob(CleanupOrphanedProcessesJob::class);
     }
 
     public function boot(IBootContext $context): void {

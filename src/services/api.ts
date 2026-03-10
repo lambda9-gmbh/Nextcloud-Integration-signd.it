@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import axios, { isAxiosError } from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -227,6 +230,9 @@ export interface FoundProcess {
     interrupted?: string
     lastSignerAction?: string
     apiClientMetaData?: FoundProcessMetaData
+    _finishedPdfPath?: string | null
+    _finishedPdfFileId?: number
+    _finishedPdfDeleted?: boolean
 }
 
 export interface FoundProcessesResponse {

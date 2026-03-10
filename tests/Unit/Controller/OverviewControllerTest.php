@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 namespace OCA\IntegrationSignd\Tests\Unit\Controller;
 
 use OCA\IntegrationSignd\Controller\OverviewController;
+use OCA\IntegrationSignd\Db\ProcessMapper;
 use OCA\IntegrationSignd\Service\SignApiService;
 use OCP\AppFramework\Http;
 use OCP\Files\Folder;
@@ -19,6 +23,7 @@ use Psr\Log\LoggerInterface;
 
 class OverviewControllerTest extends TestCase {
     private SignApiService&MockObject $signApiService;
+    private ProcessMapper&MockObject $processMapper;
     private IRootFolder&MockObject $rootFolder;
     private IUserSession&MockObject $userSession;
     private IConfig&MockObject $config;
@@ -28,6 +33,7 @@ class OverviewControllerTest extends TestCase {
     protected function setUp(): void {
         $request = $this->createMock(IRequest::class);
         $this->signApiService = $this->createMock(SignApiService::class);
+        $this->processMapper = $this->createMock(ProcessMapper::class);
         $this->rootFolder = $this->createMock(IRootFolder::class);
         $this->userSession = $this->createMock(IUserSession::class);
         $this->config = $this->createMock(IConfig::class);
@@ -40,6 +46,7 @@ class OverviewControllerTest extends TestCase {
         $this->controller = new OverviewController(
             $request,
             $this->signApiService,
+            $this->processMapper,
             $this->rootFolder,
             $this->userSession,
             $this->config,
@@ -200,6 +207,7 @@ class OverviewControllerTest extends TestCase {
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('admin');
         $this->userSession->method('getUser')->willReturn($user);
+        $this->processMapper->method('findAll')->willReturn([]);
 
         $mockFile = $this->createMock(\OCP\Files\File::class);
         $userFolder = $this->createMock(Folder::class);
@@ -230,6 +238,7 @@ class OverviewControllerTest extends TestCase {
 
     public function testListHandlesProcessWithoutMetadata(): void {
         $this->mockUser();
+        $this->processMapper->method('findAll')->willReturn([]);
         $this->signApiService->method('listProcesses')->willReturn([
             'numHits' => 1,
             'processes' => [
@@ -242,6 +251,68 @@ class OverviewControllerTest extends TestCase {
 
         $this->assertSame(200, $response->getStatus());
         $this->assertCount(1, $data['processes']);
+    }
+
+    // ── list: Local DB enrichment (finishedPdfPath) ──
+
+    public function testListEnrichesWithFinishedPdfPath(): void {
+        $this->mockUser();
+
+        $localProcess = new \OCA\IntegrationSignd\Db\Process();
+        $localProcess->setProcessId('doc-1');
+        $localProcess->setFinishedPdfPath('/user/files/contract_signed.pdf');
+
+        $this->processMapper->expects($this->once())
+            ->method('findAll')
+            ->willReturn([$localProcess]);
+
+        $mockFile = $this->createMock(\OCP\Files\File::class);
+        $mockFile->method('getId')->willReturn(100);
+        $this->rootFolder->method('get')
+            ->with('/user/files/contract_signed.pdf')
+            ->willReturn($mockFile);
+
+        $this->signApiService->method('listProcesses')->willReturn([
+            'numHits' => 2,
+            'processes' => [
+                ['documentId' => 'doc-1', 'apiClientMetaData' => json_encode(['applicationMetaData' => ['ncFileId' => '42']])],
+                ['documentId' => 'doc-2', 'apiClientMetaData' => json_encode(['applicationMetaData' => ['ncFileId' => '43']])],
+            ],
+        ]);
+
+        $response = $this->controller->list();
+        $data = $response->getData();
+
+        $this->assertSame('/user/files/contract_signed.pdf', $data['processes'][0]['_finishedPdfPath']);
+        $this->assertSame(100, $data['processes'][0]['_finishedPdfFileId']);
+        $this->assertArrayNotHasKey('_finishedPdfPath', $data['processes'][1]);
+    }
+
+    public function testListMarksDeletedFinishedPdf(): void {
+        $this->mockUser();
+
+        $localProcess = new \OCA\IntegrationSignd\Db\Process();
+        $localProcess->setProcessId('doc-1');
+        $localProcess->setFinishedPdfPath('/user/files/deleted.pdf');
+
+        $this->processMapper->method('findAll')->willReturn([$localProcess]);
+
+        $this->rootFolder->method('get')
+            ->with('/user/files/deleted.pdf')
+            ->willThrowException(new \OCP\Files\NotFoundException());
+
+        $this->signApiService->method('listProcesses')->willReturn([
+            'numHits' => 1,
+            'processes' => [
+                ['documentId' => 'doc-1', 'apiClientMetaData' => json_encode(['applicationMetaData' => ['ncFileId' => '42']])],
+            ],
+        ]);
+
+        $response = $this->controller->list();
+        $data = $response->getData();
+
+        $this->assertTrue($data['processes'][0]['_finishedPdfDeleted']);
+        $this->assertArrayNotHasKey('_finishedPdfPath', $data['processes'][0]);
     }
 
     // ── list: Error handling ──

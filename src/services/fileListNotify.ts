@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { davGetClient, davGetDefaultPropfind, davGetRootPath, davResultToNode } from '@nextcloud/files'
 import { emit } from '@nextcloud/event-bus'
 

@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 namespace OCA\IntegrationSignd\Controller;
 
 use OCA\IntegrationSignd\AppInfo\Application;
+use OCA\IntegrationSignd\Db\ProcessMapper;
 use OCA\IntegrationSignd\Service\SignApiService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -19,6 +23,7 @@ class OverviewController extends Controller {
     public function __construct(
         IRequest $request,
         private SignApiService $signApiService,
+        private ProcessMapper $processMapper,
         private IRootFolder $rootFolder,
         private IUserSession $userSession,
         private IConfig $config,
@@ -115,6 +120,33 @@ class OverviewController extends Controller {
                     $fileId = $proc['apiClientMetaData']['applicationMetaData']['ncFileId'] ?? null;
                     if ($fileId !== null) {
                         $result['processes'][$i]['apiClientMetaData']['applicationMetaData']['_ncFileExists'] = $fileExistsMap[$fileId];
+                    }
+                }
+            }
+
+            // Enrich with local DB data (finished PDF info)
+            if (!empty($result['processes'])) {
+                $localProcesses = $this->processMapper->findAll();
+                $localByProcessId = [];
+                foreach ($localProcesses as $lp) {
+                    $localByProcessId[$lp->getProcessId()] = $lp;
+                }
+
+                foreach ($result['processes'] as $i => $proc) {
+                    $docId = $proc['documentId'] ?? null;
+                    if ($docId === null || !isset($localByProcessId[$docId])) {
+                        continue;
+                    }
+                    $localProc = $localByProcessId[$docId];
+                    $pdfPath = $localProc->getFinishedPdfPath();
+                    if ($pdfPath) {
+                        try {
+                            $file = $this->rootFolder->get($pdfPath);
+                            $result['processes'][$i]['_finishedPdfPath'] = $pdfPath;
+                            $result['processes'][$i]['_finishedPdfFileId'] = $file->getId();
+                        } catch (\OCP\Files\NotFoundException) {
+                            $result['processes'][$i]['_finishedPdfDeleted'] = true;
+                        }
                     }
                 }
             }

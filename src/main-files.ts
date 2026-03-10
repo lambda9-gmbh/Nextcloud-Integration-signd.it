@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { FileAction, registerFileAction } from '@nextcloud/files'
 import { translate as t } from '@nextcloud/l10n'
 import svgIcon from '../img/app.svg?raw'

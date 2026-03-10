@@ -1,3 +1,8 @@
+<!--
+  SPDX-FileCopyrightText: 2026 lambda9 GmbH <support@lambda9.de>
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
     <div class="signd-login-form">
         <h3>{{ t('integration_signd', 'Login with signd.it credentials') }}</h3>
